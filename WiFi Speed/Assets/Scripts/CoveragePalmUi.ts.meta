@@ -1,0 +1,150 @@
+- !<AssetImportMetadata/b2c8e4a1-7f3d-4a9b-9c2e-1d5f8a3b6c0d>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> e7f1a2b3-c4d5-6789-abcd-ef0123456789
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> e7f1a2b3-c4d5-6789-abcd-ef0123456789
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> f8a2b3c4-d5e6-7890-bcde-f1234567890a
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/f8a2b3c4-d5e6-7890-bcde-f1234567890a>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  ComponentUid: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    arrowMinFractionOfMax: false
+    arrowObject: false
+    arrowRotationLerp: false
+    attachLerp: false
+    bracketLabels: false
+    bracketMaterials: false
+    defaultProgressDurationSec: false
+    grid: false
+    headerText: false
+    hintMoveVariants: false
+    hintPivot: false
+    hintRetryVariants: false
+    hintScaleTransitionSpeed: false
+    hintSpinDurationSec: false
+    hintStayVariants: false
+    hintText: false
+    moveAfterSamples: false
+    palmAttachPoint: false
+    palmHideDelaySec: false
+    palmShowDelaySec: false
+    positionSource: false
+    probe: false
+    progressBarBackground: false
+    progressBarPivot: false
+    progressRapidFinishSpeed: false
+    progressSlowAfter90Factor: false
+    scaleRoot: false
+    scaleTransitionSpeed: false
+    secondaryText: false
+    statusText: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - probe: !<MappingBased.AssignableType> 00000000-0000-0000-0000-000000000000
+      grid: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
+      positionSource: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      palmAttachPoint: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      scaleRoot: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      statusText: !<reference.Text> 00000000-0000-0000-0000-000000000000
+      progressBarPivot: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      progressBarBackground: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      headerText: !<reference.Text> 00000000-0000-0000-0000-000000000000
+      secondaryText: !<reference.Text> 00000000-0000-0000-0000-000000000000
+      hintText: !<reference.Text> 00000000-0000-0000-0000-000000000000
+      hintPivot: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      arrowObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      bracketLabels: !<string[]>
+        - Terrible
+        - Very Poor
+        - Poor
+        - Weak
+        - Fair
+        - OK
+        - Good
+        - Great
+        - Excellent
+        - Perfect
+      bracketMaterials: !<reference.Material[]>
+        []
+      attachLerp: 0.350000
+      scaleTransitionSpeed: !<float> 8.000000
+      palmShowDelaySec: 0.150000
+      palmHideDelaySec: 0.250000
+      arrowRotationLerp: !<float> 8.000000
+      defaultProgressDurationSec: !<float> 8.000000
+      progressSlowAfter90Factor: 0.250000
+      progressRapidFinishSpeed: !<float> 4.000000
+      moveAfterSamples: !<float> 3.000000
+      arrowMinFractionOfMax: 0.800000
+      hintScaleTransitionSpeed: !<float> 10.000000
+      hintSpinDurationSec: 0.350000
+      hintStayVariants: !<string[]>
+        - Hang tight — another reading here would help
+        - Stay put for one more test
+        - Give this spot one more go
+      hintMoveVariants: !<string[]>
+        - Looking good — try walking somewhere new
+        - Nice sample — explore another area
+        - "You've got this spot — map somewhere else"
+      hintRetryVariants: !<string[]>
+        - "That didn't stick — let's try again here"
+        - "Hmm, one more attempt right here?"
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @input AssignableType probe {"hint":"ConnectionProbe — download loop and last-run metrics"}'
+    - '// @input AssignableType_1 grid {"hint":"CoverageGridManager — session range, cell counts, arrow centroid"}'
+    - '// @input SceneObject positionSource {"hint":"World position for grid cell + arrow origin (Camera / device tracking)"}'
+    - '// @input SceneObject palmAttachPoint {"hint":"Left palm center — PalmUI follows this each frame"}'
+    - '// @input SceneObject scaleRoot {"hint":"Root to scale on palm show/hide (defaults to PalmUI object — use to include Frame + Arrow)"}'
+    - '// @input Component.Text statusText {"hint":"CurrentStatus text — probe state line"}'
+    - '// @input SceneObject progressBarPivot {"hint":"Pivot To Scale — progress bar; local X scaled 0→1"}'
+    - '// @input SceneObject progressBarBackground {"hint":"Background of loading bar — shown while a scan is in flight"}'
+    - '// @input Component.Text headerText {"hint":"Header — bracket label from last successful probe"}'
+    - '// @input Component.Text secondaryText {"hint":"Secondary — Mbps + % from last successful probe (multi-line)"}'
+    - '// @input Component.Text hintText {"hint":"Hint — stay / move prompts (hide when empty)"}'
+    - '// @input SceneObject hintPivot {"hint":"Optional pivot for hint scale / flip (defaults to hint Text object)"}'
+    - '// @input SceneObject arrowObject {"hint":"Arrow mesh — yaw toward best cluster"}'
+    - '// @input string[] bracketLabels = {} {"hint":"One unique label per color bracket (same as Record prefab)"}'
+    - '// @input Asset.Material[] bracketMaterials = {} {"hint":"10 materials for bracket colors — same array as Record prefab bar"}'
+    - '// @input float attachLerp = 0.35 {"hint":"Lerp speed for palm attach follow"}'
+    - '// @input float scaleTransitionSpeed = 8 {"hint":"Scale lerp speed when palm shows / hides"}'
+    - '// @input float palmShowDelaySec = 0.15 {"hint":"Seconds palm must face camera before UI scales in"}'
+    - '// @input float palmHideDelaySec = 0.25 {"hint":"Seconds palm turned away before UI scales out"}'
+    - '// @input float arrowRotationLerp = 8 {"hint":"Arrow yaw slerp speed toward best cluster"}'
+    - '// @input float defaultProgressDurationSec = 8 {"hint":"Fallback estimated scan duration when no history yet"}'
+    - '// @input float progressSlowAfter90Factor = 0.25 {"hint":"Progress rate multiplier after 90% while scan still running"}'
+    - '// @input float progressRapidFinishSpeed = 4 {"hint":"Rapid finish speed when scan completes before bar reaches 100%"}'
+    - '// @input float moveAfterSamples = 3 {"hint":"Min successes at this spot before suggesting move"}'
+    - '// @input float arrowMinFractionOfMax = 0.8 {"hint":"Min fraction of session max Mbps for arrow cluster cells"}'
+    - '// @input float hintScaleTransitionSpeed = 10 {"hint":"Hint scale lerp speed when appearing / hiding"}'
+    - '// @input float hintSpinDurationSec = 0.35 {"hint":"Hint 360° X-flip duration when text changes (swap at 180°)"}'
+    - '// @input string[] hintStayVariants = {"One more here","Stay a sec","Another test here","Hold still — once more","Quick retest here","Same spot again","Almost — one more","Keep at it here"}'
+    - "// @input string[] hintMoveVariants = {\"Try somewhere new\",\"Head to a new spot\",\"Good here — move on\",\"Walk to another area\",\"Explore elsewhere\",\"Next spot?\",\"Map a new place\",\"You're good — wander\"}"
+    - '// @input string[] hintRetryVariants = {"Try again here","Once more here","Give it another go","Retry this spot","Run it again","Same place — retry"}'

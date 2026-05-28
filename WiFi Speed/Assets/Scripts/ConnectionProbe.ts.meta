@@ -1,0 +1,92 @@
+- !<AssetImportMetadata/906f2480-6228-4b6e-b85d-1aeb7e3a11b5>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> a40e5ce1-251e-4655-b085-04cae79e0d4c
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> a40e5ce1-251e-4655-b085-04cae79e0d4c
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> f367eaed-a491-429e-8c53-e87a5051e98a
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/f367eaed-a491-429e-8c53-e87a5051e98a>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  ComponentUid: 62eed1f6-0c62-4de4-bac9-170075140f86
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    coverageGrid: false
+    downloadUrl: false
+    expectedBytes: false
+    failAudio: false
+    interProbeDelaySec: false
+    logMeasurementDetail: false
+    maxTravelDistance: false
+    minMeasureBytes: false
+    positionSource: false
+    rangeFallbackToBulk: false
+    snapCloud: false
+    storageBucket: false
+    storageObjectPath: false
+    successAudio: false
+    useByteRange: false
+    useWarmupWindow: false
+    warmupBytes: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - snapCloud: !<MappingBased.AssignableType> 00000000-0000-0000-0000-000000000000
+      storageBucket: speedtest
+      storageObjectPath: 10mb.bin
+      downloadUrl: "http://192.168.50.1/10mb.bin"
+      expectedBytes: !<float> 10240000.000000
+      coverageGrid: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
+      positionSource: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      maxTravelDistance: !<float> 25.000000
+      successAudio: !<reference.AudioComponent> 00000000-0000-0000-0000-000000000000
+      failAudio: !<reference.AudioComponent> 00000000-0000-0000-0000-000000000000
+      interProbeDelaySec: 0.500000
+      useByteRange: true
+      useWarmupWindow: true
+      warmupBytes: !<float> 2097152.000000
+      minMeasureBytes: !<float> 4194304.000000
+      rangeFallbackToBulk: true
+      logMeasurementDetail: false
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @input AssignableType snapCloud {"hint":"Snap Cloud config (assign SupabaseProject on this component)"}'
+    - '// @input string storageBucket = "speedtest" {"hint":"Storage bucket name on Snap Cloud"}'
+    - '// @input string storageObjectPath = "10mb.bin" {"hint":"Object path in bucket (e.g. 10mb.bin)"}'
+    - '// @input string downloadUrl {"hint":"Override download URL (leave empty to use Snap Cloud storage URL)"}'
+    - '// @input float expectedBytes = 10240000 {"hint":"Expected download size in bytes (0 = use received body length)"}'
+    - '// @input AssignableType_1 coverageGrid {"hint":"Spawns/updates grid markers from successful samples"}'
+    - '// @input SceneObject positionSource {"hint":"World position for grid cell (e.g. Camera or Device Tracking object)"}'
+    - '// @input float maxTravelDistance = 25 {"hint":"Max XZ travel during probe; discard sample if exceeded"}'
+    - '// @input Component.AudioComponent successAudio {"hint":"Plays on successful probe (recorded, not discarded)"}'
+    - '// @input Component.AudioComponent failAudio {"hint":"Plays on failed probe (error, moved too far, bad size, etc.)"}'
+    - '// @input float interProbeDelaySec = 0.5 {"hint":"Pause before next probe (lets Palm UI show OK + hints)"}'
+    - '// @input bool useByteRange = true {"hint":"Download via HTTP Range (required for warmup window)"}'
+    - '// @input bool useWarmupWindow = true {"hint":"Warmup then score: Range warmup bytes 0-(N-1), then timed measure range"}'
+    - '// @input float warmupBytes = 2097152 {"hint":"Warmup bytes discarded before timed measure (default 2 MB)"}'
+    - '// @input float minMeasureBytes = 4194304 {"hint":"Minimum scored bytes; if measure window smaller, use full-file Range"}'
+    - '// @input bool rangeFallbackToBulk = true {"hint":"If Range fails, retry once with a normal full-file GET"}'
+    - '// @input bool logMeasurementDetail {"hint":"Log warmup / measure / bulk details to Logger (device tuning)"}'

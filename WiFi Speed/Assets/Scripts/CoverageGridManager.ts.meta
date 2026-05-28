@@ -1,0 +1,128 @@
+- !<AssetImportMetadata/6a3e16e2-639c-41d4-b560-3fa22e5ed61b>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 14f93264-7234-4746-9659-57dae4e52715
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 14f93264-7234-4746-9659-57dae4e52715
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 22af13b0-8056-4851-8c42-470b4b83970d
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/22af13b0-8056-4851-8c42-470b4b83970d>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  ComponentUid: 48479e93-6e26-42c4-8bd4-5a5f9d3fe3bd
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    barHeightMoveSmooth: false
+    cullCamera: false
+    cullFovCheckFarSec: false
+    cullFovCheckMidSec: false
+    cullFovCheckNearSec: false
+    cullMaxDistance: false
+    cullSphereRadius: false
+    directSampleWeight: false
+    enableFovVisualCull: false
+    gridSize: false
+    heightBandCatchUpSmooth: false
+    heightBandMaxOffset: false
+    heightReferenceOffset: false
+    interactableMaxDistance: false
+    lookAtTarget: false
+    neighborIncludeDiagonals: false
+    neighborInfluence: false
+    neighborRingFalloff: false
+    neighborSpreadRings: false
+    perfFarUpdateSec: false
+    perfMidDistance: false
+    perfMidUpdateSec: false
+    perfNearDistance: false
+    recordPrefab: false
+    recordsParent: false
+    smoothPasses: false
+    userHeightSmoothSec: false
+    yAtMaxMbps: false
+    yAtMinMbps: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - recordPrefab: !<reference.ObjectPrefab> 00000000-0000-0000-0000-000000000000
+      recordsParent: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      lookAtTarget: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      cullCamera: !<reference.Camera> 00000000-0000-0000-0000-000000000000
+      gridSize: !<float> 10.000000
+      yAtMaxMbps: !<float> 0.000000
+      yAtMinMbps: !<float> -100.000000
+      heightReferenceOffset: !<float> -30.000000
+      heightBandMaxOffset: !<float> -10.000000
+      heightBandCatchUpSmooth: !<float> 2.000000
+      userHeightSmoothSec: 0.200000
+      barHeightMoveSmooth: !<float> 10.000000
+      neighborInfluence: 0.400000
+      neighborSpreadRings: !<float> 2.000000
+      neighborIncludeDiagonals: true
+      neighborRingFalloff: 0.500000
+      directSampleWeight: !<float> 1.000000
+      smoothPasses: !<float> 2.000000
+      perfNearDistance: !<float> 2.000000
+      perfMidDistance: !<float> 4.000000
+      perfMidUpdateSec: 0.200000
+      perfFarUpdateSec: 0.500000
+      interactableMaxDistance: !<float> 4.000000
+      cullMaxDistance: !<float> 80.000000
+      enableFovVisualCull: true
+      cullSphereRadius: !<float> 8.000000
+      cullFovCheckNearSec: !<float> 0.000000
+      cullFovCheckMidSec: 0.150000
+      cullFovCheckFarSec: 0.330000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @input Asset.ObjectPrefab recordPrefab {"hint":"Record prefab (root has RecordMarker + wired label Text)"}'
+    - '// @input SceneObject recordsParent {"hint":"Parent for spawned record markers"}'
+    - '// @input SceneObject lookAtTarget {"hint":"Camera or device tracking object — markers look at this"}'
+    - '// @input Component.Camera cullCamera {"hint":"Camera for FOV culling; falls back to Camera on lookAtTarget"}'
+    - '// @input float gridSize = 10 {"hint":"World XZ grid cell size"}'
+    - '// @input float yAtMaxMbps = -10 {"hint":"cm offset from user ref at best session % (fastest Mbps)"}'
+    - '// @input float yAtMinMbps = -40 {"hint":"cm offset from user ref at worst session % (slowest Mbps)"}'
+    - '// @input float heightReferenceOffset = -30 {"hint":"cm below user — bottom of height band (bars stay put while anchor is in band)"}'
+    - '// @input float heightBandMaxOffset = -10 {"hint":"cm below user — top of height band (closest bars sit to user)"}'
+    - '// @input float heightBandCatchUpSmooth = 2 {"hint":"How fast tracked height re-enters band when user Y moves (higher = faster)"}'
+    - '// @input float userHeightSmoothSec = 0.2 {"hint":"Light filter on lookAtTarget Y (band edges only; bars use tracked anchor)"}'
+    - '// @input float barHeightMoveSmooth = 10 {"hint":"Near-bar world-Y lerp speed (0 = snap; higher = faster catch-up)"}'
+    - '// @input float neighborInfluence = 0.4 {"hint":"Spread sample weight at ring 1 (full Mbps stored; weight falls off per ring)"}'
+    - '// @input float neighborSpreadRings = 2 {"hint":"How many grid rings beyond center receive spread samples (2 = center + 2 rings of neighbors)"}'
+    - '// @input bool neighborIncludeDiagonals = true {"hint":"Spread to diagonal neighbors as well as cardinals"}'
+    - '// @input float neighborRingFalloff = 0.5 {"hint":"Per-ring influence multiplier (ring 2 = neighborInfluence × this, ring 3 × this², …)"}'
+    - '// @input float directSampleWeight = 1 {"hint":"Weight for a direct probe at this cell (spread uses neighborInfluence × ring falloff)"}'
+    - '// @input float smoothPasses = 2 {"hint":"Smoothing passes across grid cells (1 = light, 3+ = softer blends)"}'
+    - '// @input float perfNearDistance = 200 {"hint":"Near tier distance (cm) — visual sync every frame when session range changes"}'
+    - '// @input float perfMidDistance = 400 {"hint":"Mid tier distance (cm) — visual sync every perfMidUpdateSec when session range changes"}'
+    - '// @input float perfMidUpdateSec = 0.2 {"hint":"Mid-tier visual sync interval (seconds)"}'
+    - '// @input float perfFarUpdateSec = 0.5 {"hint":"Far-tier visual sync interval (seconds)"}'
+    - '// @input float interactableMaxDistance = 100 {"hint":"Disable SIK Interactable beyond this distance (cm); also requires in FOV (live check)"}'
+    - '// @input float cullMaxDistance = 800 {"hint":"Max distance (cm) before marker SceneObject is disabled"}'
+    - '// @input bool enableFovVisualCull = true {"hint":"When off, markers stay enabled by distance only (FOV ignored for visibility)"}'
+    - '// @input float cullSphereRadius = 16 {"hint":"Sphere radius (cm) for Camera.isSphereVisible FOV test — ~grid cell size"}'
+    - '// @input float cullFovCheckNearSec {"hint":"FOV re-check interval (sec) for near bars (< perfNearDistance); 0 = every frame"}'
+    - '// @input float cullFovCheckMidSec = 0.15 {"hint":"FOV re-check interval (sec) for mid-distance bars"}'
+    - '// @input float cullFovCheckFarSec = 0.33 {"hint":"FOV re-check interval (sec) for far bars (>= perfMidDistance)"}'

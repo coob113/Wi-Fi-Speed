@@ -1,0 +1,78 @@
+- !<AssetImportMetadata/14b0b829-26dd-4858-837f-78f6df4ef375>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> 7193df6c-ab83-411d-bb15-70fdd3881b71
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> 7193df6c-ab83-411d-bb15-70fdd3881b71
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> 044090f7-7af9-47ef-8eb6-618af8539208
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/044090f7-7af9-47ef-8eb6-618af8539208>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  ComponentUid: c91b53f4-66db-4e3d-a945-b9f2ffbe5653
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    forceShowOnboarding: false
+    frame: false
+    grid: false
+    nextButton: false
+    palmUi: false
+    prevButton: false
+    prevButtonObject: false
+    slide1AutoSec: false
+    slide2NewBars: false
+    slide5AutoSec: false
+    slides: false
+    stepText: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - slides: !<reference.SceneObject[]>
+        []
+      stepText: !<reference.Text> 00000000-0000-0000-0000-000000000000
+      prevButtonObject: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      frame: !<MappingBased.AssignableType> 00000000-0000-0000-0000-000000000000
+      prevButton: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
+      nextButton: !<MappingBased.AssignableType_2> 00000000-0000-0000-0000-000000000000
+      grid: !<MappingBased.AssignableType_3> 00000000-0000-0000-0000-000000000000
+      palmUi: !<MappingBased.AssignableType_4> 00000000-0000-0000-0000-000000000000
+      forceShowOnboarding: false
+      slide1AutoSec: !<float> 15.000000
+      slide2NewBars: !<float> 30.000000
+      slide5AutoSec: !<float> 5.000000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @input SceneObject[] slides = {} {"hint":"Slide 1 … Slide 5 — enable one at a time"}'
+    - '// @input Component.Text stepText {"hint":"UI/Step Text — Step 1/5 … Step 5/5"}'
+    - '// @input SceneObject prevButtonObject {"hint":"UI/Previous root — hidden on slide 1"}'
+    - '// @input AssignableType frame {"hint":"Spectacles UIKit Frame on Onboarding (Close button)"}'
+    - '// @input AssignableType_1 prevButton {"hint":"UIKit Previous button component"}'
+    - '// @input AssignableType_2 nextButton {"hint":"UIKit Next button — always shown; dismisses on last slide"}'
+    - // @input AssignableType_3 grid
+    - // @input AssignableType_4 palmUi
+    - '// @input bool forceShowOnboarding {"hint":"Skip persisted dismiss (testing)"}'
+    - // @input float slide1AutoSec = 15
+    - // @input float slide2NewBars = 30
+    - // @input float slide5AutoSec = 5
