@@ -34,10 +34,8 @@
     deadZoneSessionPct: false
     detailPanel: false
     directXZScale: false
-    enableLookAt: false
     headerText: false
     interactable: false
-    labelText: false
     limitIcon: false
     maxOpenDetailPanels: false
     neighborXZScale: false
@@ -57,15 +55,13 @@
   Attachments:
     []
   DefaultScriptInputs:
-    - labelText: !<reference.Text> 00000000-0000-0000-0000-000000000000
-      colorTarget: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+    - colorTarget: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
       bracketMaterials: !<reference.Material[]>
         []
       scaleTarget: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
       scaleMultiplier: 0.200000
       directXZScale: !<float> 20.000000
       neighborXZScale: !<float> 10.000000
-      enableLookAt: false
       interactable: !<MappingBased.AssignableType> 00000000-0000-0000-0000-000000000000
       visualSphere: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
       detailPanel: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
@@ -85,14 +81,12 @@
     -
       {}
   InputLines:
-    - '// @input Component.Text labelText {"hint":"Legacy % label (optional; detail panel replaces when wired)"}'
     - '// @input SceneObject colorTarget {"hint":"Child with RenderMeshVisual — material swapped by median % bracket"}'
     - '// @input Asset.Material[] bracketMaterials {"hint":"10 materials for 0-10%, 10-20%, … 90-100% relative speed"}'
     - '// @input SceneObject scaleTarget {"hint":"Child scaled on local Y by median percentage"}'
     - '// @input float scaleMultiplier = 0.2 {"hint":"Local Y = median % × multiplier (e.g. 0.2 → 100% gives Y=20)"}'
     - '// @input float directXZScale = 20 {"hint":"Local X/Z scale when this cell has its own recording"}'
     - '// @input float neighborXZScale = 10 {"hint":"Local X/Z scale for neighbor-influenced cells only"}'
-    - '// @input bool enableLookAt {"hint":"Billboard toward look-at target and show % on legacy labelText"}'
     - '// @input AssignableType interactable {"hint":"SIK Interactable on InteractableToPinch child"}'
     - '// @input SceneObject visualSphere {"hint":"VisualSphere — scales on hover / pinch"}'
     - '// @input SceneObject detailPanel {"hint":"TextToEnable root — shown when user pinches the interactable"}'

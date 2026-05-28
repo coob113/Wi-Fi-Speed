@@ -1,8 +1,8 @@
-- !<Material/7d244fca-9b46-41be-8ae0-109a0c5f958d>
+- !<Material/04871e9d-177a-4ef7-8cc1-5586a8d58399>
   PackagePath: ""
   PassesInfo:
-    - !<own> 7caf1edc-a4e8-4228-84a0-7a6ab72647e3
-- !<PassInfo/7caf1edc-a4e8-4228-84a0-7a6ab72647e3>
+    - !<own> e41ea1ad-5939-427c-b4a0-f3ca71336832
+- !<PassInfo/e41ea1ad-5939-427c-b4a0-f3ca71336832>
   CachedProperties:
     []
   DepthWrite: true
@@ -33,5 +33,5 @@
       value: 0
     baseColor:
       typeIdx: 5
-      value: {x: 1.000000, y: 1.000000, z: 0.000000, w: 1.000000}
+      value: {x: 0.500008, y: 0.500008, z: 0.500008, w: 0.500008}
   Pass: !<reference> 10ceb5ad-3ce4-4535-947a-879cb5927f29

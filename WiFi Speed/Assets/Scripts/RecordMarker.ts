@@ -15,17 +15,11 @@ import {
 } from "./CoverageMetrics"
 
 type CoverageGridRef = BaseScriptComponent & {
-  getLookAtTarget(): SceneObject | null
   onMarkerUpdated(marker: RecordMarker): void
 }
 
 @component
 export class RecordMarker extends BaseScriptComponent {
-  @input
-  @allowUndefined
-  @hint("Legacy % label (optional; detail panel replaces when wired)")
-  labelText: Text
-
   @input
   @allowUndefined
   @hint("Child with RenderMeshVisual — material swapped by median % bracket")
@@ -51,10 +45,6 @@ export class RecordMarker extends BaseScriptComponent {
   @input
   @hint("Local X/Z scale for neighbor-influenced cells only")
   neighborXZScale: number = 10
-
-  @input
-  @hint("Billboard toward look-at target and show % on legacy labelText")
-  enableLookAt: boolean = false
 
   @input
   @allowUndefined
@@ -296,10 +286,6 @@ export class RecordMarker extends BaseScriptComponent {
     this.lastGlobalMinMbps = globalMinMbps
     this.lastGlobalMaxMbps = globalMaxMbps
     this.lastPct = clampPercent(sessionPercent(displayMbps, globalMinMbps, globalMaxMbps))
-
-    if (this.enableLookAt && this.labelText) {
-      this.labelText.text = `${this.lastPct.toFixed(0)}%`
-    }
 
     this.applyBracketMaterial(this.lastPct)
     this.applyScaleBar(this.lastPct)

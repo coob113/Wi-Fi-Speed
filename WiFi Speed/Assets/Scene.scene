@@ -634,7 +634,7 @@
   Enabled: true
   Layers: 1
   LocalTransform: !<TransformEntity>
-    Position: {x: 0.000000, y: 9.732249, z: 0.199997}
+    Position: {x: 0.000000, y: 9.732249, z: 1.000000}
     Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
     Scale: {x: 24.000000, y: 24.000000, z: 24.000000}
     HasSegmentScaleCompensation: false
@@ -1162,11 +1162,9 @@
   Enabled: true
   ScriptAsset: !<reference> c48e4814-bd05-4c38-b5cd-e1c1c99d6542
   ScriptInputsDefault:
-    labelText: true
     scaleMultiplier: true
     directXZScale: true
     neighborXZScale: true
-    enableLookAt: true
     visualSphereDefaultScale: true
     visualSphereHoverScale: true
     visualSphereSelectScale: true
@@ -1176,7 +1174,6 @@
     {}
   ScriptInputs:
     "":
-      labelText: !<reference.Text> 00000000-0000-0000-0000-000000000000
       colorTarget: !<reference.SceneObject> 4d183fee-20c4-4124-83ed-e12901cebe58
       bracketMaterials: !<reference.Material[]>
         - !<reference> b2574510-5bb0-49c0-9f15-62d6fece333c
@@ -1193,7 +1190,6 @@
       scaleMultiplier: 0.200000
       directXZScale: !<float> 20.000000
       neighborXZScale: !<float> 10.000000
-      enableLookAt: false
       interactable: !<MappingBased.AssignableType> 13ee8b08-5736-4625-a11a-a59786f33441
       visualSphere: !<reference.SceneObject> 97ccc8b1-25f6-4b07-b78e-6756429ff9ca
       detailPanel: !<reference.SceneObject> a0f4ab1b-e8e2-4e1b-8713-4dff725d38f8
@@ -1340,8 +1336,6 @@
     useBillboarding: true
     xOnTranslate: true
     yOnTranslate: true
-    yAlways: true
-    yBufferDegrees: true
     useSnapping: true
     itemSnapping: true
     worldSnapping: true
@@ -1372,8 +1366,8 @@
       xAlways: true
       xBufferDegrees: !<float> 1.000000
       yOnTranslate: true
-      yAlways: false
-      yBufferDegrees: !<float> 0.000000
+      yAlways: true
+      yBufferDegrees: !<float> 1.000000
       useSnapping: false
       itemSnapping: false
       worldSnapping: false
@@ -3392,7 +3386,7 @@
   Enabled: true
   Layers: 1
   LocalTransform: !<TransformEntity>
-    Position: {x: 3.000000, y: 0.000000, z: 0.000000}
+    Position: {x: 1.489154, y: -0.000001, z: -0.000000}
     Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
     Scale: {x: 6.000000, y: 0.200000, z: 0.200000}
     HasSegmentScaleCompensation: false
@@ -3592,7 +3586,7 @@
   ShadowDensity: 1.000000
   Materials:
     - !<reference> fefa0256-03d4-444c-b107-8880ccd2ad8f
-  Mesh: !<reference> fb2db214-036e-46ea-8ab9-ddbb831e4087
+  Mesh: !<reference> f204be55-1837-4bce-a56c-9ddf7bb0c97a
   Skin: !<reference> 00000000-0000-0000-0000-000000000000
   BlendShapesEnabled: true
   BlendNormals: false
@@ -4262,7 +4256,7 @@
   ShadowDensity: 1.000000
   Materials:
     - !<reference> 7d244fca-9b46-41be-8ae0-109a0c5f958d
-  Mesh: !<reference> c32aef81-b816-4831-84a3-976e14402585
+  Mesh: !<reference> 29b2a40a-10de-4946-aba9-75377b7a6d6a
   Skin: !<reference> 00000000-0000-0000-0000-000000000000
   BlendShapesEnabled: true
   BlendNormals: false
@@ -4485,8 +4479,8 @@
   ShadowColor: {x: 1.000000, y: 1.000000, z: 1.000000, w: 1.000000}
   ShadowDensity: 1.000000
   Materials:
-    - !<reference> cbe8c620-fb42-4a21-a37a-248b698e010f
-  Mesh: !<reference> 45780ac4-a31f-44d7-bbcc-cd44f2db8397
+    - !<reference> b2574510-5bb0-49c0-9f15-62d6fece333c
+  Mesh: !<reference> ce17046e-37c4-4b25-b561-d44069832e57
   Skin: !<reference> 00000000-0000-0000-0000-000000000000
   BlendShapesEnabled: true
   BlendNormals: false
@@ -5253,7 +5247,7 @@
   ShadowDensity: 1.000000
   Materials:
     - !<reference> 7d244fca-9b46-41be-8ae0-109a0c5f958d
-  Mesh: !<reference> 45780ac4-a31f-44d7-bbcc-cd44f2db8397
+  Mesh: !<reference> ce17046e-37c4-4b25-b561-d44069832e57
   Skin: !<reference> 00000000-0000-0000-0000-000000000000
   BlendShapesEnabled: true
   BlendNormals: false
@@ -5349,7 +5343,7 @@
   Enabled: true
   Layers: 1
   LocalTransform: !<TransformEntity>
-    Position: {x: 0.000000, y: 7.893641, z: 0.199997}
+    Position: {x: 0.000000, y: 7.893641, z: 1.000000}
     Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
     Scale: {x: 24.000000, y: 24.000000, z: 24.000000}
     HasSegmentScaleCompensation: false
@@ -5818,7 +5812,7 @@
   Enabled: true
   Layers: 1
   LocalTransform: !<TransformEntity>
-    Position: {x: 0.000000, y: 9.314657, z: 0.199997}
+    Position: {x: 0.000000, y: 9.314657, z: 1.000000}
     Rotation: {x: 0.000000, y: 0.000000, z: 0.000000}
     Scale: {x: 24.000000, y: 24.000000, z: 24.000000}
     HasSegmentScaleCompensation: false
@@ -6275,7 +6269,7 @@
   ShadowColor: {x: 1.000000, y: 1.000000, z: 1.000000, w: 1.000000}
   ShadowDensity: 1.000000
   Materials:
-    - !<reference> af8e7512-c43f-488e-98e5-5390bdf34cef
+    - !<reference> 04871e9d-177a-4ef7-8cc1-5586a8d58399
   Mesh: !<reference> e542623c-1432-4bfa-881d-a28905bd9e57
   Skin: !<reference> 00000000-0000-0000-0000-000000000000
   BlendShapesEnabled: true

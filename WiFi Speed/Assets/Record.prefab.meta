@@ -126,7 +126,7 @@
   ShadowDensity: 1.000000
   Materials:
     - !<reference> fefa0256-03d4-444c-b107-8880ccd2ad8f
-  Mesh: !<reference> fb2db214-036e-46ea-8ab9-ddbb831e4087
+  Mesh: !<reference> f204be55-1837-4bce-a56c-9ddf7bb0c97a
   Skin: !<reference> 00000000-0000-0000-0000-000000000000
   BlendShapesEnabled: true
   BlendNormals: false
@@ -234,11 +234,9 @@
   Enabled: true
   ScriptAsset: !<reference> c48e4814-bd05-4c38-b5cd-e1c1c99d6542
   ScriptInputsDefault:
-    labelText: true
     scaleMultiplier: true
     directXZScale: true
     neighborXZScale: true
-    enableLookAt: true
     visualSphereDefaultScale: true
     visualSphereHoverScale: true
     visualSphereSelectScale: true
@@ -248,7 +246,6 @@
     {}
   ScriptInputs:
     "":
-      labelText: !<reference.Text> 00000000-0000-0000-0000-000000000000
       colorTarget: !<reference.SceneObject> 51ae40a0-cd04-4f20-a534-7f54ed3c3c36
       bracketMaterials: !<reference.Material[]>
         - !<reference> b2574510-5bb0-49c0-9f15-62d6fece333c
@@ -265,7 +262,6 @@
       scaleMultiplier: 0.200000
       directXZScale: !<float> 20.000000
       neighborXZScale: !<float> 10.000000
-      enableLookAt: false
       interactable: !<MappingBased.AssignableType> 1e9d1a83-6b35-4550-866f-9361460e4d11
       visualSphere: !<reference.SceneObject> 9601f499-a79f-40a6-4902-24a3b281e11f
       detailPanel: !<reference.SceneObject> 8f8ad0e1-a773-4ffe-9c3a-b1004381a888
@@ -325,8 +321,8 @@
   ShadowColor: {x: 1.000000, y: 1.000000, z: 1.000000, w: 1.000000}
   ShadowDensity: 1.000000
   Materials:
-    - !<reference> cbe8c620-fb42-4a21-a37a-248b698e010f
-  Mesh: !<reference> 45780ac4-a31f-44d7-bbcc-cd44f2db8397
+    - !<reference> b2574510-5bb0-49c0-9f15-62d6fece333c
+  Mesh: !<reference> ce17046e-37c4-4b25-b561-d44069832e57
   Skin: !<reference> 00000000-0000-0000-0000-000000000000
   BlendShapesEnabled: true
   BlendNormals: false
