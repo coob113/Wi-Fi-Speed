@@ -20,6 +20,10 @@
 
 - [Demo video](#demo-video)
 - [Overview](#overview)
+- [How it works](#how-it-works)
+- [Project structure](#project-structure)
+- [Main scripts](#main-scripts)
+- [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
 - [Run it locally](#run-it-locally)
 - [Replace Snap Cloud project](#replace-snap-cloud-project)
@@ -67,6 +71,98 @@ This lens answers: *"Where in this space is download actually good?"*
 
 ---
 
+## How it works
+
+```
+┌──────────────────┐         ┌──────────────────┐
+│  SPECTACLES      │ ──────► │  SNAP CLOUD      │
+│  walk + probe    │  HTTPS  │  public storage  │
+│  (Lens Studio)   │  fetch  │  speedtest/      │
+└──────────────────┘         │  10mb.bin        │
+         │                   └──────────────────┘
+         ▼
+┌──────────────────┐
+│  ON-DEVICE MAP   │
+│  grid · pins ·   │
+│  palm UI         │
+└──────────────────┘
+```
+
+1. **ConnectionProbe** resolves a download URL (Snap Cloud storage by default) and runs an HTTPS fetch with optional warmup + timed measure window.
+2. **CoverageGridManager** records each good sample at a floor grid cell and spawns/updates a **Record** prefab pin.
+3. Cell **weighted median** drives pin height, color bracket, and quality label via **CoverageMetrics**.
+4. **CoveragePalmUi** shows probe progress, last Mbps, coaching hints, and an arrow toward stronger cells on the left palm.
+5. Pinch a pin → **RecordMarker** detail panel (Mbps, session %, bracket, record count).
+
+*Download speed is measured on-device (10 MB HTTPS file); results may differ from phone speedtest apps.*
+
+---
+
+## Project structure
+
+```
+Wi-Fi Speed/
+├── README.md
+├── LICENSE
+├── AGENTS.md                 # brief agent context
+├── docs/images/              # logo, onboarding screenshots for GitHub
+└── WiFi Speed/               # Lens Studio project
+    ├── WiFi Speed.esproj
+    ├── icon.png
+    ├── testdata/             # 100kb.bin, 10mb.bin (upload 10mb.bin to Snap Cloud)
+    ├── Assets/
+    │   ├── Scene.scene
+    │   ├── Record.prefab     # coverage pin (bar + pinch panel + VisualSphere)
+    │   ├── Meshes/           # Cone, Cylinder, Sphere
+    │   ├── Materials/        # bracket colors (0–10 … 90–100), UI mats
+    │   ├── Images/           # onboarding PNGs + image materials
+    │   ├── Scripts/          # TypeScript components (see below)
+    │   └── SupabaseClient.lspkg
+    └── Packages/
+        ├── SpectaclesInteractionKit.lspkg
+        ├── SpectaclesUIKit.lspkg
+        └── Utilities.lspkg
+```
+
+Key scene objects: **`ConnectionProbe`**, **`CoverageGridManager`**, **`CoveragePalmUi`**, **`OnboardingController`**, **`SnapCloud`** (SnapCloudRequirements + SupabaseProject asset).
+
+---
+
+## Main scripts
+
+All TypeScript lives in `WiFi Speed/Assets/Scripts/`.
+
+| Script | Role |
+|--------|------|
+| **`ConnectionProbe.ts`** | Download speedtest loop. Resolves URL from **SnapCloudRequirements** (or `downloadUrl` override), runs ranged HTTPS fetch with warmup/measure windows, computes Mbps, discards samples if user moved too far (`maxTravelDistance`), forwards good samples to the grid. |
+| **`CoverageGridManager.ts`** | Floor grid (`gridSize`), cell snapping, weighted median per cell, neighbor spread, FOV culling, spawns **Record** prefabs. Tracks session min/max Mbps for relative quality. |
+| **`RecordMarker.ts`** | Per-pin behavior: bracket material + bar height from session %, pinch panel (header/secondary text), hover/select scale on **VisualSphere**, dead-zone warnings, registers with grid on update. |
+| **`CoveragePalmUi.ts`** | Left-palm HUD: probe progress bar, status line, Mbps / session %, coaching hints (stay / move / retry), arrow toward best cells. Gates visibility on left palm pose. |
+| **`CoverageMetrics.ts`** | Shared math: weighted median, session %, quality brackets (Good / OK / Poor), dead-zone detection, color helpers. No scene inputs — imported by other scripts. |
+| **`SnapCloudRequirements.ts`** | Validates **SupabaseProject** asset, exposes `projectUrl` / tokens, builds public storage URLs for ConnectionProbe. |
+| **`OnboardingController.ts`** | First-run slide tour (UIKit Frame + prev/next), persists dismiss in **PersistentStorage**, optional triggers tied to grid/palm events. |
+
+Data flow:
+
+```
+ConnectionProbe → CoverageGridManager → RecordMarker (prefab instances)
+        ↓                    ↓
+  CoveragePalmUi      CoverageMetrics (shared)
+```
+
+---
+
+## Tech stack
+
+- **Platform** — Snap Spectacles, Lens Studio **5.15.4+**
+- **Language** — TypeScript (`Assets/Scripts/`)
+- **Hand / pinch UI** — Spectacles Interaction Kit (SIK)
+- **Onboarding frame & buttons** — Spectacles UIKit (`Frame`, `RectangleButton`)
+- **Speedtest file** — Snap Cloud public storage (`speedtest/10mb.bin`)
+- **Mapping** — on-device grid + median smoothing (v1; no Postgres sync yet)
+
+---
+
 ## Getting started
 
 First launch shows a short onboarding flow. Four steps:
@@ -76,7 +172,7 @@ First launch shows a short onboarding flow. Four steps:
 The lens tests Wi‑Fi speed as you walk and shows signal strength in your space.
 
 <div align="center">
-<img src="docs/images/onboarding-1-map.png" alt="3D coverage map with signal bars" width="600">
+<img src="docs/images/onboarding-1-map.png" alt="3D coverage map with signal bars" width="300">
 </div>
 
 ### 2. Walk slowly
@@ -84,7 +180,7 @@ The lens tests Wi‑Fi speed as you walk and shows signal strength in your space
 Slowly walk around to test your Wi‑Fi signal. Bars appear where probes succeed — taller and bluer means stronger download in your session.
 
 <div align="center">
-<img src="docs/images/onboarding-2-walk.png" alt="Walk to collect signal samples" width="600">
+<img src="docs/images/onboarding-2-walk.png" alt="Walk to collect signal samples" width="300">
 </div>
 
 ### 3. Open your palm
@@ -92,7 +188,7 @@ Slowly walk around to test your Wi‑Fi signal. Bars appear where probes succeed
 Turn your left palm toward you to see your latest speed and quality — progress while scanning, Mbps, session %, and hints.
 
 <div align="center">
-<img src="docs/images/onboarding-3-palm.png" alt="Left palm UI with speed and quality" width="600">
+<img src="docs/images/onboarding-3-palm.png" alt="Left palm UI with speed and quality" width="300">
 </div>
 
 ### 4. Pinch a bar
@@ -100,7 +196,7 @@ Turn your left palm toward you to see your latest speed and quality — progress
 Pinch any bar to open details for that spot — Mbps, quality label, record count.
 
 <div align="center">
-<img src="docs/images/onboarding-4-pinch.png" alt="Pinch a bar for spot details" width="600">
+<img src="docs/images/onboarding-4-pinch.png" alt="Pinch a bar for spot details" width="300">
 </div>
 
 Onboarding dismisses after the tour (stored on-device — won't show again unless reset).
