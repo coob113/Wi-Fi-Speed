@@ -1,0 +1,165 @@
+<div align="center">
+
+<img src="docs/images/logo.png" alt="Wi-Fi Speed" width="280">
+
+# Wi-Fi Speed
+
+**Snap Spectacles that map Wi-Fi coverage as you walk — probe, pin, and read signal quality from your palm.**
+
+<!-- Replace #demo-video with your YouTube/Vimeo URL when ready -->
+[![Watch the demo](https://img.shields.io/badge/▶-Watch_the_demo-purple?style=for-the-badge)](#demo-video)
+[![Open in Lens Studio](https://img.shields.io/badge/Lens_Studio-5.15.4+-orange?style=for-the-badge)](https://ar.snap.com/lens-studio)
+
+*Walk a space. See where download speed is good — and where it isn't.*
+
+</div>
+
+---
+
+## Table of contents
+
+- [Demo video](#demo-video)
+- [Overview](#overview)
+- [Getting started](#getting-started)
+- [Run it locally](#run-it-locally)
+- [Replace Snap Cloud project](#replace-snap-cloud-project)
+- [Coming soon](#coming-soon)
+- [License](#license)
+
+---
+
+## Demo video
+
+<div align="center" id="demo-video">
+
+<!-- Paste your embed or badge link here, e.g.:
+[![Watch the demo](https://img.shields.io/badge/▶-Watch_on_YouTube-red?style=for-the-badge)](https://www.youtube.com/watch?v=YOUR_ID)
+
+Or:
+[![Demo thumbnail](docs/images/demo-poster.png)](https://www.youtube.com/watch?v=YOUR_ID)
+-->
+
+*Demo video coming soon.*
+
+</div>
+
+---
+
+## Overview
+
+Wi-Fi Speed turns a Spectacles walkthrough into a **live coverage map**. As you move, the lens measures download speed and shows results as colored bars in your space — plus speed and quality on your left palm.
+
+No laptop server. No manual logging. Just walk and read the map.
+
+### Why
+
+Phone speedtests give you one number at one spot. Wi-Fi actually varies by room, wall, and where you stand — but there's no simple way to *see* that in AR while you're moving.
+
+This lens answers: *"Where in this space is download actually good?"*
+
+### Features
+
+- **Walk and map** — signal bars appear as you move through a space
+- **Color-coded quality** — see good and weak spots at a glance
+- **Left-palm UI** — latest speed, quality, and hints while you walk
+- **Pinch for detail** — open a spot for Mbps, quality label, and record count
+- **Onboarding** — short first-run tour (see [Getting started](#getting-started))
+
+---
+
+## Getting started
+
+First launch shows a short onboarding flow. Four steps:
+
+### 1. Map your space
+
+The lens tests Wi‑Fi speed as you walk and shows signal strength in your space.
+
+<div align="center">
+<img src="docs/images/onboarding-1-map.png" alt="3D coverage map with signal bars" width="600">
+</div>
+
+### 2. Walk slowly
+
+Slowly walk around to test your Wi‑Fi signal. Bars appear where probes succeed — taller and bluer means stronger download in your session.
+
+<div align="center">
+<img src="docs/images/onboarding-2-walk.png" alt="Walk to collect signal samples" width="600">
+</div>
+
+### 3. Open your palm
+
+Turn your left palm toward you to see your latest speed and quality — progress while scanning, Mbps, session %, and hints.
+
+<div align="center">
+<img src="docs/images/onboarding-3-palm.png" alt="Left palm UI with speed and quality" width="600">
+</div>
+
+### 4. Pinch a bar
+
+Pinch any bar to open details for that spot — Mbps, quality label, record count.
+
+<div align="center">
+<img src="docs/images/onboarding-4-pinch.png" alt="Pinch a bar for spot details" width="600">
+</div>
+
+Onboarding dismisses after the tour (stored on-device — won't show again unless reset).
+
+---
+
+## Run it locally
+
+1. Clone this repo.
+2. Open **`WiFi Speed/WiFi Speed.esproj`** in Lens Studio 5.
+3. Set **Device Type Override → Spectacles** for preview.
+4. **File → Send To → Spectacles** (or use device preview).
+5. Walk — probes start automatically; open left palm for status.
+
+The repo ships with a working Snap Cloud project wired in the scene. Clones can run as-is.
+
+Forking or publishing your own build? See [Replace Snap Cloud project](#replace-snap-cloud-project).
+
+---
+
+## Replace Snap Cloud project
+
+The lens downloads a test file from Snap Cloud storage to measure speed. To use **your own** project:
+
+### 1. Create storage
+
+In [Snap Cloud Console](https://kit.snapchat.com/manage/snap-cloud):
+
+1. **Storage → New bucket** — name **`speedtest`**, enable **Public bucket**.
+2. Upload **`WiFi Speed/testdata/10mb.bin`** (~10 MB).
+3. **Policies** — allow public read (otherwise probes fail with **403**).
+
+Browser check — this URL must download the file, not return 403:
+
+```text
+https://<your-project-ref>.snapcloud.dev/storage/v1/object/public/speedtest/10mb.bin
+```
+
+### 2. Import credentials in Lens Studio
+
+1. **Window → Supabase** → log in → select your project → **Import Credentials**.
+2. This creates a **SupabaseProject** asset under Assets.
+
+### 3. Wire the scene
+
+1. Select **`SnapCloud`** → **SnapCloudRequirements → Supabase Project** → your new asset.
+2. On **`ConnectionProbe`**, confirm **Snap Cloud** points to `SnapCloud`, bucket **`speedtest`**, path **`10mb.bin`**, and **Download Url** is empty.
+3. Save scene → preview on Spectacles.
+
+**Alternative:** set **Download Url** on ConnectionProbe to any public HTTPS URL for a ~10 MB file.
+
+---
+
+## Coming soon
+
+We're planning to make coverage maps **viewable on the web** — so you can open and share a walkthrough from a browser, not only on Spectacles.
+
+---
+
+## License
+
+[MIT](LICENSE) — Copyright (c) 2026 coob113

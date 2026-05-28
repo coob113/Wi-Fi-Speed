@@ -1,0 +1,8 @@
+.DS_Store
+Thumbs.db
+
+# Local editor / agent config (never commit tokens)
+.cursor/mcp.json
+
+# Accidental archives at repo root
+/*.zip
