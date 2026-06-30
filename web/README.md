@@ -12,7 +12,7 @@ The web viewer is part of the open-source Wi-Fi Speed Spectacles project. It ren
 
 ## Features
 
-- Load a published map with `?pin=123456`
+- Load a published map with `?pin=971588`
 - Inspect orthographic 3D coverage bars with rotate, pan, zoom, and view presets
 - Distinguish directly recorded points from inferred cells
 - Navigate weakest, strongest, and recorded points from the sidebar

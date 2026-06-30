@@ -122,7 +122,7 @@ https://wifi.familybusiness.studio/
 Open a published map with:
 
 ```text
-https://wifi.familybusiness.studio/?pin=123456
+https://wifi.familybusiness.studio/?pin=971588
 ```
 
 The viewer includes:
@@ -131,7 +131,7 @@ The viewer includes:
 - Direct vs inferred cells, hover/select states, and per-cell details
 - Best / worst / average speed summary and scan age
 - Weakest, strongest, and recorded-point navigation
-- Shareable selected-cell links, for example `?pin=123456&cell=20,-40`
+- Shareable selected-cell links, for example `?pin=971588&cell=20,-40`
 - Expiration status and an extend action for keeping a published map available
 
 Published maps are stored as snapshot JSON in Cloudflare D1 and are accessed by PIN only.
