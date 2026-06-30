@@ -588,7 +588,7 @@ export class CoveragePalmUi extends BaseScriptComponent {
     }
 
     if (this.spotFailStreak >= 2) {
-      this.statusText.text = "Weak or no download here"
+      this.statusText.text = `Weak: ${this.formatFailureStatus()}`
       return
     }
 
@@ -616,8 +616,8 @@ export class CoveragePalmUi extends BaseScriptComponent {
         this.applyHeaderBracketColor(this.spotFailStreak >= 2 ? 0 : -1)
       }
       if (this.secondaryText) {
-        this.secondaryText.text = ""
-        this.secondaryText.enabled = false
+        this.secondaryText.enabled = true
+        this.secondaryText.text = this.buildFailureSecondaryLine()
       }
       return
     }
@@ -680,6 +680,31 @@ export class CoveragePalmUi extends BaseScriptComponent {
     }
 
     return "Try again"
+  }
+
+  private buildFailureSecondaryLine(): string {
+    return `Status: ${this.formatFailureStatus()}\nMap: ${this.probe.getLastCoverageRecordStatus()}`
+  }
+
+  private formatFailureStatus(): string {
+    if (!this.probe) {
+      return "unknown"
+    }
+
+    const status = this.probe.getLastStatus()
+    if (status === "moved") {
+      return "moved too far"
+    }
+    if (status.indexOf("size") === 0) {
+      return status
+    }
+    if (status.indexOf("fail") === 0) {
+      return status
+    }
+    if (status === "error") {
+      return "fetch error"
+    }
+    return status.length > 0 ? status : "unknown"
   }
 
   private isSuccessStatus(status: string): boolean {
