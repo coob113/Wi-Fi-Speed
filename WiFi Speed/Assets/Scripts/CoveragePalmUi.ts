@@ -417,6 +417,7 @@ export class CoveragePalmUi extends BaseScriptComponent {
         this.spotFailStreak = 1
         this.lastResultCellKey = cellKey
       }
+      this.logProbeFailure(status, mbps, cellKey)
       this.progressVisual = 0
       this.rapidFinish = false
       this.applyProgressBar(0)
@@ -588,7 +589,7 @@ export class CoveragePalmUi extends BaseScriptComponent {
     }
 
     if (this.spotFailStreak >= 2) {
-      this.statusText.text = `Weak: ${this.formatFailureStatus()}`
+      this.statusText.text = "Weak or no download here"
       return
     }
 
@@ -616,8 +617,8 @@ export class CoveragePalmUi extends BaseScriptComponent {
         this.applyHeaderBracketColor(this.spotFailStreak >= 2 ? 0 : -1)
       }
       if (this.secondaryText) {
-        this.secondaryText.enabled = true
-        this.secondaryText.text = this.buildFailureSecondaryLine()
+        this.secondaryText.text = ""
+        this.secondaryText.enabled = false
       }
       return
     }
@@ -682,10 +683,6 @@ export class CoveragePalmUi extends BaseScriptComponent {
     return "Try again"
   }
 
-  private buildFailureSecondaryLine(): string {
-    return `Status: ${this.formatFailureStatus()}\nMap: ${this.probe.getLastCoverageRecordStatus()}`
-  }
-
   private formatFailureStatus(): string {
     if (!this.probe) {
       return "unknown"
@@ -705,6 +702,13 @@ export class CoveragePalmUi extends BaseScriptComponent {
       return "fetch error"
     }
     return status.length > 0 ? status : "unknown"
+  }
+
+  private logProbeFailure(status: string, mbps: number, cellKey: string) {
+    const mapStatus = this.probe ? this.probe.getLastCoverageRecordStatus() : "unknown"
+    console.warn(
+      `[CoveragePalmUi] probe failed status=${this.formatFailureStatus()} raw=${status} mbps=${mbps.toFixed(1)} cell=${cellKey || "unknown"} streak=${this.spotFailStreak} map=${mapStatus}`
+    )
   }
 
   private isSuccessStatus(status: string): boolean {
