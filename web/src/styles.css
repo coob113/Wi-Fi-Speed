@@ -1,5 +1,29 @@
+@font-face {
+  font-family: "Quantico";
+  src: url("/fonts/quantico/Quantico-Regular.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Quantico";
+  src: url("/fonts/quantico/Quantico-Bold.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Quantico";
+  src: url("/fonts/quantico/Quantico-Italic.ttf") format("truetype");
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+}
+
 :root {
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: "Quantico", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   color: #f8fafc;
   background: #05070b;
   font-synthesis: none;
@@ -75,7 +99,7 @@ a {
 .brand {
   gap: 10px;
   color: #ffffff;
-  font-weight: 750;
+  font-weight: 700;
 }
 
 .brand-mark {
@@ -134,7 +158,7 @@ p {
 .panel-label {
   color: #ffde7b;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -144,7 +168,7 @@ h1 {
   margin-top: 12px;
   font-size: clamp(40px, 6vw, 68px);
   line-height: 0.98;
-  font-weight: 820;
+  font-weight: 700;
 }
 
 .topbar-loaded h1 {
@@ -187,7 +211,7 @@ h1 {
 .pin-form label span {
   color: #ffde7b;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -200,9 +224,9 @@ h1 {
   background: #0d1420;
   color: #ffffff;
   padding: 0 16px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: inherit;
   font-size: 28px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 4px;
   outline: none;
 }
@@ -224,7 +248,7 @@ h1 {
   background: #ffde7b;
   color: #120904;
   padding: 0 16px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -341,7 +365,7 @@ h1 {
 
 .panel-heading strong {
   color: #e2e8f0;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: inherit;
   font-size: 13px;
 }
 
@@ -383,7 +407,7 @@ h1 {
 .publish-meta dt {
   color: #94a3b8;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   text-transform: uppercase;
 }
@@ -445,7 +469,7 @@ h1 {
   color: #f8fafc;
   padding: 0 10px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -495,7 +519,7 @@ h1 {
 .detail-header p {
   margin-top: 8px;
   color: #94a3b8;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-family: inherit;
   font-size: 12px;
 }
 
@@ -506,7 +530,7 @@ h1 {
   border-radius: 999px;
   padding: 0 9px;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .badge-direct {
@@ -541,7 +565,7 @@ h1 {
 .metrics dd {
   margin: 5px 0 0;
   color: #ffffff;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 h3 {
@@ -607,7 +631,7 @@ h3 {
     max-width: 100%;
   }
 
-.topbar-loaded .pin-form {
+  .topbar-loaded .pin-form {
     margin-top: 14px;
   }
 
