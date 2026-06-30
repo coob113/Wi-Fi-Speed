@@ -706,7 +706,7 @@ export class CoveragePalmUi extends BaseScriptComponent {
 
   private logProbeFailure(status: string, mbps: number, cellKey: string) {
     const mapStatus = this.probe ? this.probe.getLastCoverageRecordStatus() : "unknown"
-    console.warn(
+    print(
       `[CoveragePalmUi] probe failed status=${this.formatFailureStatus()} raw=${status} mbps=${mbps.toFixed(1)} cell=${cellKey || "unknown"} streak=${this.spotFailStreak} map=${mapStatus}`
     )
   }

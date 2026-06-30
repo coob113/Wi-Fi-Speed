@@ -260,6 +260,7 @@ export class ConnectionProbe extends BaseScriptComponent {
       this.logResult()
       this.playFeedback(finalStatus)
       this.recordCoverageSample(mbps, finalStatus, startPos, endPos)
+      this.logProbeSummary(scanDuration)
       this.scheduleNextSpeedtest()
     })
   }
@@ -527,6 +528,12 @@ export class ConnectionProbe extends BaseScriptComponent {
 
   private logResult() {
     this.log(`L:${this.formatLine()}`)
+  }
+
+  private logProbeSummary(scanDuration: number) {
+    print(
+      `[ConnectionProbe] result=${this.formatLine()} raw=${this.lastStatus} duration=${scanDuration.toFixed(2)}s coverage=${this.lastCoverageRecordStatus}`
+    )
   }
 
   private formatLine(): string {
