@@ -10,6 +10,8 @@ type AppState = {
   selectedKey: string
   loading: boolean
   error: string
+  statusKind: "idle" | "loading" | "invalid" | "not-found" | "expired" | "network"
+  pinInput: string
 }
 
 const state: AppState = {
@@ -17,6 +19,8 @@ const state: AppState = {
   selectedKey: "",
   loading: false,
   error: "",
+  statusKind: "idle",
+  pinInput: "",
 }
 
 let mapScene: {dispose: () => void} | null = null
@@ -72,14 +76,14 @@ function render() {
         `}
         ${renderPinForm()}
       </section>
-      ${state.error ? `<div class="notice">${escapeHtml(state.error)}</div>` : ""}
+      ${renderLookupStatus()}
       ${state.map ? renderMapView(state.map) : renderEmptyState()}
     </main>
   `
 
   bindEvents()
 
-  if (state.map) {
+  if (state.map && buildRenderedCells(state.map).length > 0) {
     mapScene = mountMapScene(state.map)
   }
 }
@@ -96,6 +100,8 @@ function renderPinForm(): string {
           maxlength="6"
           placeholder="123456"
           aria-label="Map PIN"
+          autocomplete="one-time-code"
+          value="${escapeAttr(state.pinInput)}"
           ${state.loading ? "disabled" : ""}
         />
       </label>
@@ -104,6 +110,37 @@ function renderPinForm(): string {
       </button>
     </form>
   `
+}
+
+function renderLookupStatus(): string {
+  if (!state.loading && !state.error) {
+    return ""
+  }
+
+  const statusClass = state.loading ? "notice notice-loading" : `notice notice-${state.statusKind}`
+  const title = state.loading ? "Loading map" : statusTitleForKind(state.statusKind)
+  const message = state.loading ? "Looking up the published coverage snapshot." : state.error
+  return `
+    <div class="${statusClass}" role="status" aria-live="polite">
+      <strong>${escapeHtml(title)}</strong>
+      <span>${escapeHtml(message)}</span>
+    </div>
+  `
+}
+
+function statusTitleForKind(kind: AppState["statusKind"]): string {
+  switch (kind) {
+    case "invalid":
+      return "Check the PIN"
+    case "not-found":
+      return "Map not found"
+    case "expired":
+      return "Map expired"
+    case "network":
+      return "Connection failed"
+    default:
+      return "Could not load map"
+  }
 }
 
 function renderEmptyState(): string {
@@ -130,6 +167,8 @@ function renderEmptyState(): string {
 
 function renderMapView(map: PublishedMap): string {
   const cells = buildRenderedCells(map)
+  const isEmpty = cells.length === 0
+  const isLowData = !isEmpty && map.snapshot.directCellCount < 2
   const selected =
     cells.find((cell) => cell.key === state.selectedKey) ||
     cells.find((cell) => cell.hasOwnRecording) ||
@@ -142,28 +181,62 @@ function renderMapView(map: PublishedMap): string {
     <section class="viewer">
       <div class="map-panel">
         <div class="panel-heading">
-          <span class="panel-label">Coverage field</span>
-          <strong>${map.pin}</strong>
+          <div>
+            <span class="panel-label">Coverage field</span>
+            <strong>${map.pin}</strong>
+          </div>
+          ${renderShareControl(map)}
         </div>
         ${renderSummary(map, cells.length)}
         ${renderPublishMetadata(map)}
-        <div class="map-viewport" data-map-viewport role="application" aria-label="Orthographic 3D Wi-Fi coverage model">
-          <canvas data-map-canvas></canvas>
-          <div class="viewport-controls">
-            <button type="button" data-view-zoom-in aria-label="Zoom in">+</button>
-            <button type="button" data-view-zoom-out aria-label="Zoom out">-</button>
-            <button type="button" data-view-reset>Reset</button>
+        ${isEmpty ? renderNoMapDataState(map) : `
+          ${isLowData ? renderLowDataNotice(map) : ""}
+          <div class="map-viewport" data-map-viewport role="application" aria-label="Orthographic 3D Wi-Fi coverage model">
+            <canvas data-map-canvas></canvas>
+            <div class="viewport-controls">
+              <button type="button" data-view-zoom-in aria-label="Zoom in">+</button>
+              <button type="button" data-view-zoom-out aria-label="Zoom out">-</button>
+              <button type="button" data-view-reset>Reset</button>
+            </div>
           </div>
-        </div>
+        `}
         ${renderLegend()}
       </div>
       <aside class="sidebar">
         <span class="panel-label">Selected cell</span>
         <div data-details>
-          ${selected ? renderDetails(selected, map) : "<p>No cells recorded.</p>"}
+          ${selected ? renderDetails(selected, map) : renderNoSelectionDetails(map)}
         </div>
       </aside>
     </section>
+  `
+}
+
+function renderShareControl(map: PublishedMap): string {
+  return `
+    <div class="share-control">
+      <button type="button" data-copy-link="${escapeAttr(map.pin)}">Copy link</button>
+      <span data-copy-feedback aria-live="polite"></span>
+    </div>
+  `
+}
+
+function renderNoMapDataState(map: PublishedMap): string {
+  return `
+    <div class="map-empty-state">
+      <span class="panel-label">No points yet</span>
+      <h2>This map published before any scan points were recorded.</h2>
+      <p>PIN ${escapeHtml(map.pin)} is valid, but the snapshot has no cells to draw yet. Scan a few positions in Spectacles and publish again.</p>
+    </div>
+  `
+}
+
+function renderLowDataNotice(map: PublishedMap): string {
+  return `
+    <div class="low-data-notice" role="status">
+      <strong>Low scan coverage</strong>
+      <span>${map.snapshot.directCellCount} recorded point${map.snapshot.directCellCount === 1 ? "" : "s"} so far. Add more scan positions for a more reliable field.</span>
+    </div>
   `
 }
 
@@ -208,6 +281,7 @@ function renderLegend(): string {
 }
 
 function renderDetails(cell: CoverageCell, map: PublishedMap): string {
+  const weakReasons = weakReasonsForCell(cell)
   const directSamples = cell.directSamples.length
     ? cell.directSamples.map((sample, index) => `
         <li><span>Test ${index + 1}</span><strong>${formatMbps(sample)}</strong></li>
@@ -222,18 +296,43 @@ function renderDetails(cell: CoverageCell, map: PublishedMap): string {
       <h2>${escapeHtml(cell.isDeadZone ? "No coverage" : cell.label)}</h2>
       <p>${formatCellPosition(cell)}</p>
     </div>
-    <dl class="metrics">
-      <div><dt>Speed</dt><dd>${formatMbps(cell.displayMbps)}</dd></div>
-      <div><dt>Session</dt><dd>${cell.sessionPct.toFixed(0)}%</dd></div>
-      <div><dt>Samples</dt><dd>${cell.sampleCount}</dd></div>
-      <div><dt>Direct</dt><dd>${cell.directSampleCount}</dd></div>
-      <div><dt>PIN</dt><dd>${map.pin}</dd></div>
-      <div><dt>Published</dt><dd>${formatDateTime(map.createdAt)}</dd></div>
-      <div><dt>Captured</dt><dd>${formatTimestampMs(map.snapshot.createdAtMs)}</dd></div>
-      <div><dt>Expires</dt><dd>${formatDateTime(map.expiresAt)}</dd></div>
-    </dl>
-    <h3>Direct probe history</h3>
-    <ul class="samples">${directSamples}</ul>
+    ${weakReasons.length ? `
+      <div class="weak-reason">
+        <strong>Weak because</strong>
+        <span>${escapeHtml(weakReasons.join(" and "))}</span>
+      </div>
+    ` : ""}
+    <section class="detail-section">
+      <h3>Scan summary</h3>
+      <dl class="metrics">
+        <div><dt>Speed</dt><dd>${formatMbps(cell.displayMbps)}</dd></div>
+        <div><dt>Session</dt><dd>${cell.sessionPct.toFixed(0)}%</dd></div>
+        <div><dt>Samples</dt><dd>${cell.sampleCount}</dd></div>
+        <div><dt>Direct</dt><dd>${cell.directSampleCount}</dd></div>
+      </dl>
+    </section>
+    <section class="detail-section">
+      <h3>Speed samples</h3>
+      <ul class="samples">${directSamples}</ul>
+    </section>
+    <section class="detail-section">
+      <h3>Map position</h3>
+      <dl class="metrics metrics-single">
+        <div><dt>Position</dt><dd>${formatCellPosition(cell)}</dd></div>
+        <div><dt>PIN</dt><dd>${map.pin}</dd></div>
+        <div><dt>Published</dt><dd>${formatDateTime(map.createdAt)}</dd></div>
+        <div><dt>Expires</dt><dd>${formatDateTime(map.expiresAt)}</dd></div>
+      </dl>
+    </section>
+  `
+}
+
+function renderNoSelectionDetails(map: PublishedMap): string {
+  return `
+    <div class="sidebar-empty">
+      <h2>No points recorded</h2>
+      <p>PIN ${escapeHtml(map.pin)} loaded, but there are no cells to inspect yet.</p>
+    </div>
   `
 }
 
@@ -247,45 +346,191 @@ function updateDetailsPanel(map: PublishedMap) {
 }
 
 function bindEvents() {
-  document.querySelector<HTMLFormElement>("[data-pin-form]")?.addEventListener("submit", (event) => {
+  const pinForm = document.querySelector<HTMLFormElement>("[data-pin-form]")
+  const pinInput = pinForm?.querySelector<HTMLInputElement>('input[name="pin"]')
+
+  pinInput?.addEventListener("input", () => {
+    const sanitized = sanitizePin(pinInput.value)
+    if (pinInput.value !== sanitized) {
+      pinInput.value = sanitized
+    }
+    state.pinInput = sanitized
+    if (sanitized.length === 6 && !state.loading) {
+      void loadMap(sanitized)
+    }
+  })
+
+  pinInput?.addEventListener("paste", (event) => {
     event.preventDefault()
-    const form = event.currentTarget as HTMLFormElement
-    const data = new FormData(form)
-    const pin = String(data.get("pin") || "").replace(/\D/g, "").slice(0, 6)
+    const text = event.clipboardData?.getData("text") || ""
+    const sanitized = sanitizePin(text)
+    pinInput.value = sanitized
+    state.pinInput = sanitized
+    if (sanitized.length === 6 && !state.loading) {
+      void loadMap(sanitized)
+    }
+  })
+
+  pinForm?.addEventListener("submit", (event) => {
+    event.preventDefault()
+    const pin = sanitizePin(pinInput?.value || "")
     void loadMap(pin)
   })
 
+  document.querySelector<HTMLButtonElement>("[data-copy-link]")?.addEventListener("click", (event) => {
+    const button = event.currentTarget as HTMLButtonElement
+    const pin = button.dataset.copyLink || state.map?.pin || ""
+    void copyMapLink(pin)
+  })
 }
 
 async function loadMap(pin: string) {
+  state.pinInput = sanitizePin(pin)
+  pin = state.pinInput
   if (!/^\d{6}$/.test(pin)) {
-    state.error = "Enter a six digit PIN."
+    state.statusKind = "invalid"
+    state.error = pin.length === 0 ? "Enter a six digit PIN." : "PINs use exactly six digits."
     render()
     return
   }
 
   state.loading = true
   state.error = ""
+  state.statusKind = "loading"
   render()
 
   try {
     const response = await fetch(`/api/maps/${pin}`)
-    const data = (await response.json()) as Partial<PublishedMap> & {error?: string}
+    const data = (await response.json().catch(() => ({}))) as Partial<PublishedMap> & {error?: string}
     if (!response.ok) {
-      state.error = data.error || "Map not found."
+      state.statusKind = statusKindForResponse(response.status)
+      state.error = messageForLookupFailure(response.status, data.error)
+      state.map = null
+      state.selectedKey = ""
+    } else if (!isPublishedMap(data)) {
+      state.statusKind = "network"
+      state.error = "The map service returned an unexpected response."
       state.map = null
       state.selectedKey = ""
     } else {
-      state.map = data as PublishedMap
+      state.map = data
       state.selectedKey = ""
+      state.statusKind = "idle"
       window.history.replaceState(null, "", `?pin=${pin}`)
     }
   } catch (_e) {
-    state.error = "Could not load this map."
+    state.statusKind = "network"
+    state.error = "Check your connection and try the PIN again."
   } finally {
     state.loading = false
     render()
   }
+}
+
+function sanitizePin(value: string): string {
+  return value.replace(/\D/g, "").slice(0, 6)
+}
+
+function statusKindForResponse(status: number): AppState["statusKind"] {
+  if (status === 400) {
+    return "invalid"
+  }
+  if (status === 404) {
+    return "not-found"
+  }
+  if (status === 410) {
+    return "expired"
+  }
+  return "network"
+}
+
+function messageForLookupFailure(status: number, fallback?: string): string {
+  if (status === 400) {
+    return "PINs use exactly six digits."
+  }
+  if (status === 404) {
+    return "No published map exists for that PIN."
+  }
+  if (status === 410) {
+    return "This published map has expired. Publish a fresh scan from Spectacles."
+  }
+  return fallback || "The map service did not return a usable response."
+}
+
+async function copyMapLink(pin: string) {
+  const feedback = document.querySelector<HTMLSpanElement>("[data-copy-feedback]")
+  const url = new URL(window.location.href)
+  url.search = `?pin=${sanitizePin(pin)}`
+  try {
+    await copyText(url.toString())
+    setCopyFeedback(feedback, "Copied")
+  } catch (_e) {
+    setCopyFeedback(feedback, "Copy failed")
+  }
+}
+
+async function copyText(value: string): Promise<void> {
+  if (copyTextWithTextarea(value)) {
+    return
+  }
+
+  const clipboard = navigator.clipboard
+  if (clipboard?.writeText) {
+    await Promise.race([
+      clipboard.writeText(value),
+      new Promise<never>((_, reject) => {
+        window.setTimeout(() => reject(new Error("Clipboard timed out")), 900)
+      }),
+    ])
+    return
+  }
+
+  throw new Error("Copy command failed")
+}
+
+function copyTextWithTextarea(value: string): boolean {
+  const textarea = document.createElement("textarea")
+  textarea.value = value
+  textarea.setAttribute("readonly", "")
+  textarea.style.position = "fixed"
+  textarea.style.left = "-9999px"
+  document.body.appendChild(textarea)
+  textarea.select()
+  const copied = document.execCommand("copy")
+  textarea.remove()
+  return copied
+}
+
+function setCopyFeedback(feedback: HTMLSpanElement | null, text: string) {
+  if (!feedback) {
+    return
+  }
+  feedback.textContent = text
+  window.setTimeout(() => {
+    if (feedback.textContent === text) {
+      feedback.textContent = ""
+    }
+  }, 1800)
+}
+
+function weakReasonsForCell(cell: CoverageCell): string[] {
+  const reasons: string[] = []
+  if (cell.displayMbps < 1) {
+    reasons.push("under 1 Mbps")
+  }
+  if (cell.sessionPct <= 1) {
+    reasons.push("bottom 1 percent of session range")
+  }
+  return reasons
+}
+
+function isPublishedMap(value: Partial<PublishedMap>): value is PublishedMap {
+  return typeof value.pin === "string" &&
+    typeof value.createdAt === "string" &&
+    typeof value.expiresAt === "string" &&
+    typeof value.snapshot === "object" &&
+    value.snapshot !== null &&
+    Array.isArray(value.snapshot.cells)
 }
 
 function mapSubtitle(map: PublishedMap): string {
@@ -732,6 +977,11 @@ function escapeAttr(value: string): string {
 const initialPin = new URLSearchParams(window.location.search).get("pin")
 if (initialPin && /^\d{6}$/.test(initialPin)) {
   void loadMap(initialPin)
+} else if (initialPin) {
+  state.pinInput = sanitizePin(initialPin)
+  state.statusKind = "invalid"
+  state.error = "PINs use exactly six digits."
+  render()
 } else {
   render()
 }
