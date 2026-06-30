@@ -12,6 +12,8 @@ type AppState = {
   error: string
   statusKind: "idle" | "loading" | "invalid" | "not-found" | "expired" | "network"
   pinInput: string
+  extending: boolean
+  extendMessage: string
 }
 
 const state: AppState = {
@@ -21,9 +23,18 @@ const state: AppState = {
   error: "",
   statusKind: "idle",
   pinInput: "",
+  extending: false,
+  extendMessage: "",
 }
 
-let mapScene: {dispose: () => void} | null = null
+type ViewPreset = "top" | "isometric" | "side"
+
+type MapSceneHandle = {
+  dispose: () => void
+  selectRecord: (key: string) => void
+}
+
+let mapScene: MapSceneHandle | null = null
 
 const palette = [
   "#ff7b7b",
@@ -46,6 +57,7 @@ const LENS_Y_AT_MAX_MBPS = -10
 const LENS_Y_AT_MIN_MBPS = -40
 const LENS_HEIGHT_BAND = Math.abs(LENS_Y_AT_MIN_MBPS - LENS_Y_AT_MAX_MBPS)
 const NEIGHBOR_SPREAD_RINGS = 2
+const EXPIRY_WARNING_MS = 3 * 24 * 60 * 60 * 1000
 
 function render() {
   if (!app) {
@@ -77,7 +89,7 @@ function render() {
         ${renderPinForm()}
       </section>
       ${renderLookupStatus()}
-      ${state.map ? renderMapView(state.map) : renderEmptyState()}
+      ${state.map ? renderMapView(state.map) : state.loading ? renderLoadingSkeleton() : renderEmptyState()}
     </main>
   `
 
@@ -165,6 +177,46 @@ function renderEmptyState(): string {
   `
 }
 
+function renderLoadingSkeleton(): string {
+  return `
+    <section class="viewer viewer-loading" aria-label="Loading coverage map">
+      <div class="map-panel">
+        <div class="panel-heading">
+          <div>
+            <span class="skeleton skeleton-label"></span>
+            <span class="skeleton skeleton-pin"></span>
+          </div>
+          <span class="skeleton skeleton-button"></span>
+        </div>
+        <div class="stats-grid">
+          ${Array.from({length: 5}).map(() => `
+            <div class="stat-card stat-card-skeleton">
+              <span class="skeleton skeleton-label"></span>
+              <span class="skeleton skeleton-value"></span>
+            </div>
+          `).join("")}
+        </div>
+        <div class="publish-meta publish-meta-skeleton">
+          ${Array.from({length: 3}).map(() => `
+            <div>
+              <span class="skeleton skeleton-label"></span>
+              <span class="skeleton skeleton-line"></span>
+            </div>
+          `).join("")}
+        </div>
+        <div class="map-viewport map-viewport-skeleton">
+          <span class="skeleton skeleton-map"></span>
+        </div>
+      </div>
+      <aside class="sidebar sidebar-loading">
+        <span class="skeleton skeleton-label"></span>
+        <span class="skeleton skeleton-title"></span>
+        ${Array.from({length: 6}).map(() => `<span class="skeleton skeleton-line"></span>`).join("")}
+      </aside>
+    </section>
+  `
+}
+
 function renderMapView(map: PublishedMap): string {
   const cells = buildRenderedCells(map)
   const isEmpty = cells.length === 0
@@ -187,13 +239,18 @@ function renderMapView(map: PublishedMap): string {
           </div>
           ${renderShareControl(map)}
         </div>
+        ${renderStatsHeader(map, cells)}
         ${renderSummary(map, cells.length)}
         ${renderPublishMetadata(map)}
+        ${renderExpiryWarning(map)}
         ${isEmpty ? renderNoMapDataState(map) : `
           ${isLowData ? renderLowDataNotice(map) : ""}
           <div class="map-viewport" data-map-viewport role="application" aria-label="Orthographic 3D Wi-Fi coverage model">
             <canvas data-map-canvas></canvas>
             <div class="viewport-controls">
+              <button type="button" data-view-preset="top">Top</button>
+              <button type="button" data-view-preset="isometric">Iso</button>
+              <button type="button" data-view-preset="side">Side</button>
               <button type="button" data-view-zoom-in aria-label="Zoom in">+</button>
               <button type="button" data-view-zoom-out aria-label="Zoom out">-</button>
               <button type="button" data-view-reset>Reset</button>
@@ -207,6 +264,7 @@ function renderMapView(map: PublishedMap): string {
         <div data-details>
           ${selected ? renderDetails(selected, map) : renderNoSelectionDetails(map)}
         </div>
+        ${renderRecordNavigation(cells)}
       </aside>
     </section>
   `
@@ -251,6 +309,34 @@ function renderSummary(map: PublishedMap, renderedCellCount: number = map.snapsh
   `
 }
 
+function renderStatsHeader(map: PublishedMap, cells: CoverageCell[]): string {
+  const stats = mapStats(map, cells)
+  return `
+    <div class="stats-grid" aria-label="Map speed summary">
+      <div class="stat-card">
+        <span>Best</span>
+        <strong>${formatMbps(stats.best)}</strong>
+      </div>
+      <div class="stat-card">
+        <span>Worst</span>
+        <strong>${formatMbps(stats.worst)}</strong>
+      </div>
+      <div class="stat-card">
+        <span>Average</span>
+        <strong>${formatMbps(stats.average)}</strong>
+      </div>
+      <div class="stat-card">
+        <span>Recorded</span>
+        <strong>${stats.recorded}</strong>
+      </div>
+      <div class="stat-card">
+        <span>Scan age</span>
+        <strong>${formatRelativeAge(map.snapshot.createdAtMs)}</strong>
+      </div>
+    </div>
+  `
+}
+
 function renderPublishMetadata(map: PublishedMap): string {
   return `
     <dl class="publish-meta" aria-label="Publication details">
@@ -264,9 +350,28 @@ function renderPublishMetadata(map: PublishedMap): string {
       </div>
       <div>
         <dt>Expires</dt>
-        <dd>${formatDateTime(map.expiresAt)}</dd>
+        <dd class="expires-row">
+          <span>${formatDateTime(map.expiresAt)}</span>
+          <button type="button" data-extend-map="${escapeAttr(map.pin)}" ${state.extending ? "disabled" : ""}>
+            ${state.extending ? "Extending" : "Extend"}
+          </button>
+        </dd>
       </div>
     </dl>
+  `
+}
+
+function renderExpiryWarning(map: PublishedMap): string {
+  const timeLeft = new Date(map.expiresAt).getTime() - Date.now()
+  const isSoon = Number.isFinite(timeLeft) && timeLeft > 0 && timeLeft <= EXPIRY_WARNING_MS
+  if (!isSoon && !state.extendMessage) {
+    return ""
+  }
+  return `
+    <div class="expiry-notice ${isSoon ? "expiry-notice-warning" : ""}" role="status" aria-live="polite">
+      <strong>${isSoon ? "Expires soon" : "Expiration updated"}</strong>
+      <span>${escapeHtml(state.extendMessage || "Extend this map to keep the published scan available longer.")}</span>
+    </div>
   `
 }
 
@@ -282,6 +387,7 @@ function renderLegend(): string {
 
 function renderDetails(cell: CoverageCell, map: PublishedMap): string {
   const weakReasons = weakReasonsForCell(cell)
+  const weakAssessment = weakCoverageAssessment(cell)
   const directSamples = cell.directSamples.length
     ? cell.directSamples.map((sample, index) => `
         <li><span>Test ${index + 1}</span><strong>${formatMbps(sample)}</strong></li>
@@ -300,6 +406,7 @@ function renderDetails(cell: CoverageCell, map: PublishedMap): string {
       <div class="weak-reason">
         <strong>Weak because</strong>
         <span>${escapeHtml(weakReasons.join(" and "))}</span>
+        ${weakAssessment ? `<em>${escapeHtml(weakAssessment)}</em>` : ""}
       </div>
     ` : ""}
     <section class="detail-section">
@@ -327,6 +434,48 @@ function renderDetails(cell: CoverageCell, map: PublishedMap): string {
   `
 }
 
+function renderRecordNavigation(cells: CoverageCell[]): string {
+  if (cells.length === 0) {
+    return ""
+  }
+  const directCells = cells.filter((cell) => cell.hasOwnRecording)
+  const records = directCells.length ? directCells : cells
+  const weakest = [...records].sort((a, b) => a.displayMbps - b.displayMbps).slice(0, 4)
+  const strongest = [...records].sort((a, b) => b.displayMbps - a.displayMbps).slice(0, 4)
+  const recorded = directCells.slice(0, 6)
+
+  return `
+    <nav class="record-nav" aria-label="Coverage record navigation">
+      ${renderRecordGroup("Weakest points", weakest)}
+      ${renderRecordGroup("Strongest points", strongest)}
+      ${renderRecordGroup("Recorded points", recorded)}
+    </nav>
+  `
+}
+
+function renderRecordGroup(title: string, cells: CoverageCell[]): string {
+  if (cells.length === 0) {
+    return ""
+  }
+  return `
+    <section class="record-group">
+      <h3>${escapeHtml(title)}</h3>
+      <div>
+        ${cells.map((cell) => `
+          <button
+            type="button"
+            class="${cell.key === state.selectedKey ? "is-selected" : ""}"
+            data-select-cell="${escapeAttr(cell.key)}"
+          >
+            <span>${escapeHtml(formatCellPosition(cell))}</span>
+            <strong>${formatMbps(cell.displayMbps)}</strong>
+          </button>
+        `).join("")}
+      </div>
+    </section>
+  `
+}
+
 function renderNoSelectionDetails(map: PublishedMap): string {
   return `
     <div class="sidebar-empty">
@@ -343,6 +492,12 @@ function updateDetailsPanel(map: PublishedMap) {
   }
   const selected = buildRenderedCells(map).find((cell) => cell.key === state.selectedKey)
   details.innerHTML = selected ? renderDetails(selected, map) : "<p>No cells recorded.</p>"
+}
+
+function updateRecordNavigation() {
+  document.querySelectorAll<HTMLButtonElement>("[data-select-cell]").forEach((button) => {
+    button.classList.toggle("is-selected", button.dataset.selectCell === state.selectedKey)
+  })
 }
 
 function bindEvents() {
@@ -382,6 +537,22 @@ function bindEvents() {
     const pin = button.dataset.copyLink || state.map?.pin || ""
     void copyMapLink(pin)
   })
+
+  document.querySelector<HTMLButtonElement>("[data-extend-map]")?.addEventListener("click", (event) => {
+    const button = event.currentTarget as HTMLButtonElement
+    const pin = button.dataset.extendMap || state.map?.pin || ""
+    void extendMap(pin)
+  })
+
+  document.querySelectorAll<HTMLButtonElement>("[data-select-cell]").forEach((button) => {
+    button.addEventListener("click", () => {
+      const key = button.dataset.selectCell || ""
+      if (!state.map || !key) {
+        return
+      }
+      selectCell(key, state.map)
+    })
+  })
 }
 
 async function loadMap(pin: string) {
@@ -414,15 +585,69 @@ async function loadMap(pin: string) {
       state.selectedKey = ""
     } else {
       state.map = data
-      state.selectedKey = ""
+      state.selectedKey = initialSelectedCell(data, pin)
       state.statusKind = "idle"
-      window.history.replaceState(null, "", `?pin=${pin}`)
+      writeMapUrl(data)
     }
   } catch (_e) {
     state.statusKind = "network"
     state.error = "Check your connection and try the PIN again."
   } finally {
     state.loading = false
+    render()
+  }
+}
+
+function initialSelectedCell(map: PublishedMap, pin: string): string {
+  const params = new URLSearchParams(window.location.search)
+  const requestedCell = params.get("pin") === pin ? params.get("cell") || "" : ""
+  if (!requestedCell) {
+    return ""
+  }
+  return buildRenderedCells(map).some((cell) => cell.key === requestedCell) ? requestedCell : ""
+}
+
+function selectCell(key: string, map: PublishedMap) {
+  if (!buildRenderedCells(map).some((cell) => cell.key === key)) {
+    return
+  }
+  state.selectedKey = key
+  updateDetailsPanel(map)
+  updateRecordNavigation()
+  mapScene?.selectRecord(key)
+  writeMapUrl(map)
+}
+
+function writeMapUrl(map: PublishedMap) {
+  const params = new URLSearchParams()
+  params.set("pin", map.pin)
+  if (state.selectedKey) {
+    params.set("cell", state.selectedKey)
+  }
+  window.history.replaceState(null, "", `?${params.toString()}`)
+}
+
+async function extendMap(pin: string) {
+  if (!state.map || !/^\d{6}$/.test(pin)) {
+    return
+  }
+  state.extending = true
+  state.extendMessage = ""
+  render()
+
+  try {
+    const response = await fetch(`/api/maps/${pin}/extend`, {method: "POST"})
+    const data = (await response.json().catch(() => ({}))) as {expiresAt?: string; error?: string}
+    if (!response.ok || !data.expiresAt) {
+      state.extendMessage = data.error || "Could not extend this map."
+      return
+    }
+    state.map = {...state.map, expiresAt: data.expiresAt}
+    state.extendMessage = `Expiration extended to ${formatDateTime(data.expiresAt)}.`
+  } catch (_e) {
+    state.extendMessage = "Could not reach the map service. Try again."
+  } finally {
+    state.extending = false
     render()
   }
 }
@@ -522,6 +747,38 @@ function weakReasonsForCell(cell: CoverageCell): string[] {
     reasons.push("bottom 1 percent of session range")
   }
   return reasons
+}
+
+function weakCoverageAssessment(cell: CoverageCell): string {
+  if (cell.isDeadZone || (cell.displayMbps < 1 && cell.sessionPct <= 1)) {
+    return "Likely dead zone."
+  }
+  if (cell.directSamples.length >= 2) {
+    const min = Math.min(...cell.directSamples)
+    const max = Math.max(...cell.directSamples)
+    if (max - min >= Math.max(5, max * 0.4)) {
+      return "Unstable area."
+    }
+  }
+  if (!cell.hasOwnRecording || cell.directSampleCount <= 1) {
+    return "Needs retest."
+  }
+  return ""
+}
+
+function mapStats(map: PublishedMap, cells: CoverageCell[]) {
+  const directCells = cells.filter((cell) => cell.hasOwnRecording)
+  const source = directCells.length ? directCells : cells
+  const speeds = source.map((cell) => cell.displayMbps).filter((value) => Number.isFinite(value))
+  const best = speeds.length ? Math.max(...speeds) : Number.NaN
+  const worst = speeds.length ? Math.min(...speeds) : Number.NaN
+  const average = speeds.length ? speeds.reduce((sum, value) => sum + value, 0) / speeds.length : Number.NaN
+  return {
+    best,
+    worst,
+    average,
+    recorded: map.snapshot.directCellCount,
+  }
 }
 
 function isPublishedMap(value: Partial<PublishedMap>): value is PublishedMap {
@@ -626,7 +883,7 @@ function labelForBracket(index: number): string {
   ][Math.max(0, Math.min(9, index))] || "Inferred"
 }
 
-function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
+function mountMapScene(map: PublishedMap): MapSceneHandle | null {
   const viewport = document.querySelector<HTMLDivElement>("[data-map-viewport]")
   const canvas = document.querySelector<HTMLCanvasElement>("[data-map-canvas]")
   if (!viewport || !canvas) {
@@ -657,15 +914,28 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
   controls.target.set(0, 8, 0)
 
   function resetView() {
-    camera.position.set(28, 30, 34)
-    camera.zoom = 1
-    controls.target.set(0, 8, 0)
-    controls.update()
-    camera.updateProjectionMatrix()
+    setViewPreset("isometric", true)
   }
 
   function setZoom(multiplier: number) {
     camera.zoom = Math.max(controls.minZoom, Math.min(controls.maxZoom, camera.zoom * multiplier))
+    camera.updateProjectionMatrix()
+  }
+
+  function setViewPreset(preset: ViewPreset, resetZoom = false) {
+    if (preset === "top") {
+      camera.position.set(0.01, 70, 0.01)
+    } else if (preset === "side") {
+      camera.position.set(62, 18, 0.01)
+    } else {
+      camera.position.set(28, 30, 34)
+    }
+    if (resetZoom) {
+      camera.zoom = 1
+    }
+    controls.target.set(0, 8, 0)
+    camera.lookAt(controls.target)
+    controls.update()
     camera.updateProjectionMatrix()
   }
 
@@ -867,11 +1137,13 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
   }
 
   function selectRecord(key: string) {
-    if (key === state.selectedKey) {
+    if (!barsByKey.has(key)) {
       return
     }
     state.selectedKey = key
     updateDetailsPanel(map)
+    updateRecordNavigation()
+    writeMapUrl(map)
     updateSelectedVisual()
     updateHoverVisual(hoveredKey)
   }
@@ -947,9 +1219,54 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
   const zoomInButton = viewportEl.querySelector<HTMLButtonElement>("[data-view-zoom-in]")
   const zoomOutButton = viewportEl.querySelector<HTMLButtonElement>("[data-view-zoom-out]")
   const resetButton = viewportEl.querySelector<HTMLButtonElement>("[data-view-reset]")
+  const presetButtons = viewportEl.querySelectorAll<HTMLButtonElement>("[data-view-preset]")
   zoomInButton?.addEventListener("click", () => setZoom(1.25))
   zoomOutButton?.addEventListener("click", () => setZoom(0.8))
   resetButton?.addEventListener("click", resetView)
+  presetButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const preset = button.dataset.viewPreset
+      if (preset === "top" || preset === "isometric" || preset === "side") {
+        setViewPreset(preset)
+      }
+    })
+  })
+
+  function cycleRecord(direction: number) {
+    const keys = cells.map((cell) => cell.key)
+    if (keys.length === 0) {
+      return
+    }
+    const currentIndex = Math.max(0, keys.indexOf(state.selectedKey))
+    const nextIndex = (currentIndex + direction + keys.length) % keys.length
+    selectRecord(keys[nextIndex])
+  }
+
+  function handleKeyDown(event: KeyboardEvent) {
+    const target = event.target as HTMLElement | null
+    const tagName = target?.tagName
+    if (tagName === "INPUT" || tagName === "TEXTAREA" || tagName === "BUTTON") {
+      return
+    }
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+      event.preventDefault()
+      cycleRecord(1)
+    } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+      event.preventDefault()
+      cycleRecord(-1)
+    } else if (event.key === "+" || event.key === "=") {
+      event.preventDefault()
+      setZoom(1.25)
+    } else if (event.key === "-" || event.key === "_") {
+      event.preventDefault()
+      setZoom(0.8)
+    } else if (event.key.toLowerCase() === "r") {
+      event.preventDefault()
+      resetView()
+    }
+  }
+
+  window.addEventListener("keydown", handleKeyDown)
 
   let animationFrame = 0
   function animate() {
@@ -967,6 +1284,7 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
       renderer.domElement.removeEventListener("pointerup", handlePointerUp)
       renderer.domElement.removeEventListener("pointermove", handlePointerMove)
       renderer.domElement.removeEventListener("pointerleave", handlePointerLeave)
+      window.removeEventListener("keydown", handleKeyDown)
       controls.dispose()
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh) {
@@ -981,6 +1299,7 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
       })
       renderer.dispose()
     },
+    selectRecord,
   }
 }
 
@@ -1003,6 +1322,26 @@ function formatDateTime(value: string): string {
 function formatTimestampMs(value: number): string {
   const date = new Date(value)
   return formatDateObject(date)
+}
+
+function formatRelativeAge(value: number): string {
+  const timestamp = Number.isFinite(value) ? value : 0
+  const diffMs = Date.now() - timestamp
+  if (!timestamp || diffMs < 0) {
+    return "--"
+  }
+  const minutes = Math.floor(diffMs / 60000)
+  if (minutes < 1) {
+    return "now"
+  }
+  if (minutes < 60) {
+    return `${minutes}m`
+  }
+  const hours = Math.floor(minutes / 60)
+  if (hours < 48) {
+    return `${hours}h`
+  }
+  return `${Math.floor(hours / 24)}d`
 }
 
 function formatDateObject(date: Date): string {
