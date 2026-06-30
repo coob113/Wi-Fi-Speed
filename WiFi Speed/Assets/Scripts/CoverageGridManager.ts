@@ -293,6 +293,16 @@ export class CoverageGridManager extends BaseScriptComponent {
     return this.markers.size
   }
 
+  public getDirectCellCount(): number {
+    let count = 0
+    this.markers.forEach((marker) => {
+      if (marker.getHasOwnRecording()) {
+        count++
+      }
+    })
+    return count
+  }
+
   public getSampleCountAtWorldPos(worldPos: vec3): number {
     const cellX = this.snapAxis(worldPos.x)
     const cellZ = this.snapAxis(worldPos.z)
@@ -359,10 +369,6 @@ export class CoverageGridManager extends BaseScriptComponent {
 
   public getLastRecordStatus(): string {
     return this.lastRecordStatus
-  }
-
-  public getMarkerCount(): number {
-    return this.markers.size
   }
 
   public onMarkerUpdated(_marker: RecordMarker) {

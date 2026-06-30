@@ -29,7 +29,7 @@ export class CoveragePublishController extends BaseScriptComponent {
 
   @input
   @hint("Minimum directly recorded cells before publishing is allowed")
-  minDirectCells: number = 1
+  minDirectCells: number = 20
 
   @input
   @allowUndefined
@@ -59,15 +59,19 @@ export class CoveragePublishController extends BaseScriptComponent {
   private internetModule: InternetModule = require("LensStudio:InternetModule")
   private inFlight = false
   private lastPin = ""
+  private publishButtonRoot: SceneObject | null = null
+  private lastPublishButtonVisible = false
 
   onAwake() {
     this.createEvent("OnStartEvent").bind(() => this.onStart())
+    this.createEvent("UpdateEvent").bind(() => this.updatePublishButtonVisibility())
   }
 
   private onStart() {
     this.resolveSceneReferences()
     this.bindButton()
     this.refreshIdleText()
+    this.updatePublishButtonVisibility(true)
   }
 
   public publishCurrentMap() {
@@ -172,8 +176,12 @@ export class CoveragePublishController extends BaseScriptComponent {
     if (!this.publishButton) {
       const buttonObject = this.findChildByName(this.getSceneObject(), PUBLISH_BUTTON_NAME)
       if (buttonObject) {
+        this.publishButtonRoot = buttonObject
         this.publishButton = this.findRectangleButton(buttonObject)
       }
+    }
+    if (!this.publishButtonRoot && this.publishButton) {
+      this.publishButtonRoot = this.publishButton.getSceneObject()
     }
 
     if (!this.pinRoot || !this.pinText) {
@@ -252,6 +260,35 @@ export class CoveragePublishController extends BaseScriptComponent {
   private finishFailure(message: string) {
     this.inFlight = false
     this.setStatus(message.length > 0 ? message : "Publish failed")
+  }
+
+  private updatePublishButtonVisibility(force = false) {
+    if (!this.publishButtonRoot) {
+      this.resolveSceneReferences()
+    }
+    if (!this.publishButtonRoot) {
+      return
+    }
+
+    const visible = this.hasEnoughRecordedCells()
+    if (!force && visible === this.lastPublishButtonVisible) {
+      return
+    }
+
+    this.publishButtonRoot.enabled = visible
+    this.lastPublishButtonVisible = visible
+  }
+
+  private hasEnoughRecordedCells(): boolean {
+    if (!this.grid) {
+      this.resolveSceneReferences()
+    }
+    if (!this.grid) {
+      return false
+    }
+
+    const required = Math.max(1, Math.round(this.minDirectCells))
+    return this.grid.getDirectCellCount() >= required
   }
 
   private refreshIdleText() {

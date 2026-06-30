@@ -287,7 +287,7 @@
       grid: !<MappingBased.AssignableType> 3aeb39ea-0f4d-464b-b5d3-fbc3c1f562dc
       publishUrl: "https://webview.wi-fi-speed.pages.dev/api/publish"
       expiresInDays: !<float> 30.000000
-      minDirectCells: !<float> 1.000000
+      minDirectCells: !<float> 20.000000
       publishButton: !<MappingBased.AssignableType_1> 2b956cf2-ce0a-4e3f-baf2-6afea1f2e79c
       statusText: !<reference.Text> 989491fd-3ac4-4f17-ad86-16b5317da111
       statusRoot: !<reference.SceneObject> 87185483-5d28-4c6e-9b36-da173910efc4
@@ -3361,7 +3361,7 @@
     - 9f4d48b0-61c3-4485-a7e4-02ae591855cd: aa93c18c-58c7-48ec-4183-0748a7a7111c
     - e3d732c7-9cc5-4b7d-abf9-9f7113d90af7: 06c9cf0e-f114-484b-6592-107d976751ec
   Name: PublishButton
-  Enabled: true
+  Enabled: false
   Layers: 1
   LocalTransform: !<TransformEntity>
     Position: {x: 7.157103, y: 3.621334, z: 1.555279}
