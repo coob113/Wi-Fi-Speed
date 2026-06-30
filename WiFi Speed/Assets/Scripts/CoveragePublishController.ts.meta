@@ -47,7 +47,7 @@
     - grid: !<MappingBased.AssignableType> 00000000-0000-0000-0000-000000000000
       publishUrl: "https://webview.wi-fi-speed.pages.dev/api/publish"
       expiresInDays: !<float> 30.000000
-      minDirectCells: !<float> 20.000000
+      minDirectCells: !<float> 1.000000
       publishButton: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
       statusText: !<reference.Text> 00000000-0000-0000-0000-000000000000
       statusRoot: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
@@ -60,7 +60,7 @@
     - '// @input AssignableType grid {"hint":"CoverageGridManager to snapshot when publishing"}'
     - '// @input string publishUrl {"hint":"Cloudflare Pages/Worker endpoint, e.g. https://wifi-speed.pages.dev/api/publish"}'
     - '// @input float expiresInDays = 30 {"hint":"Days until the PIN expires; backend caps this at 30"}'
-    - '// @input float minDirectCells = 20 {"hint":"Minimum directly recorded cells before publishing is allowed"}'
+    - '// @input float minDirectCells = 1 {"hint":"Minimum directly recorded cells before publishing is allowed"}'
     - '// @input AssignableType_1 publishButton {"hint":"Optional UIKit button that triggers publish"}'
     - '// @input Component.Text statusText {"hint":"Optional status text for publish progress / errors"}'
     - '// @input SceneObject statusRoot {"hint":"Optional root for status/hint text; hidden until publish returns a PIN"}'

@@ -29,7 +29,7 @@ export class CoveragePublishController extends BaseScriptComponent {
 
   @input
   @hint("Minimum directly recorded cells before publishing is allowed")
-  minDirectCells: number = 20
+  minDirectCells: number = 1
 
   @input
   @allowUndefined

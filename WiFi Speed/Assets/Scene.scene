@@ -287,7 +287,7 @@
       grid: !<MappingBased.AssignableType> 3aeb39ea-0f4d-464b-b5d3-fbc3c1f562dc
       publishUrl: "https://webview.wi-fi-speed.pages.dev/api/publish"
       expiresInDays: !<float> 30.000000
-      minDirectCells: !<float> 20.000000
+      minDirectCells: !<float> 1.000000
       publishButton: !<MappingBased.AssignableType_1> 2b956cf2-ce0a-4e3f-baf2-6afea1f2e79c
       statusText: !<reference.Text> 989491fd-3ac4-4f17-ad86-16b5317da111
       statusRoot: !<reference.SceneObject> 87185483-5d28-4c6e-9b36-da173910efc4
