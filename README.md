@@ -6,8 +6,8 @@
 
 **Snap Spectacles that map Wi-Fi coverage as you walk — probe, pin, and read signal quality from your palm.**
 
-<!-- Replace #demo-video with your YouTube/Vimeo URL when ready -->
-[![Watch the demo](https://img.shields.io/badge/▶-Watch_the_demo-purple?style=for-the-badge)](#demo-video)
+[![Watch the demo](https://img.shields.io/badge/▶-Watch_the_demo-red?style=for-the-badge)](https://www.youtube.com/watch?v=72Gr3HF7yRA)
+[![Open web viewer](https://img.shields.io/badge/Web_viewer-wifi.familybusiness.studio-yellow?style=for-the-badge)](https://wifi.familybusiness.studio/)
 [![Open in Lens Studio](https://img.shields.io/badge/Lens_Studio-5.15.4+-orange?style=for-the-badge)](https://ar.snap.com/lens-studio)
 
 *Walk a space. See where download speed is good — and where it isn't.*
@@ -21,13 +21,13 @@
 - [Demo video](#demo-video)
 - [Overview](#overview)
 - [How it works](#how-it-works)
+- [Web viewer](#web-viewer)
 - [Project structure](#project-structure)
 - [Main scripts](#main-scripts)
 - [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
 - [Run it locally](#run-it-locally)
 - [Replace Snap Cloud project](#replace-snap-cloud-project)
-- [Coming soon](#coming-soon)
 - [License](#license)
 
 ---
@@ -36,14 +36,9 @@
 
 <div align="center" id="demo-video">
 
-<!-- Paste your embed or badge link here, e.g.:
-[![Watch the demo](https://img.shields.io/badge/▶-Watch_on_YouTube-red?style=for-the-badge)](https://www.youtube.com/watch?v=YOUR_ID)
+[![Wi-Fi Speed demo video](https://img.youtube.com/vi/72Gr3HF7yRA/hqdefault.jpg)](https://www.youtube.com/watch?v=72Gr3HF7yRA)
 
-Or:
-[![Demo thumbnail](docs/images/demo-poster.png)](https://www.youtube.com/watch?v=YOUR_ID)
--->
-
-*Demo video coming soon.*
+[Watch the demo on YouTube](https://www.youtube.com/watch?v=72Gr3HF7yRA)
 
 </div>
 
@@ -51,7 +46,7 @@ Or:
 
 ## Overview
 
-Wi-Fi Speed turns a Spectacles walkthrough into a **live coverage map**. As you move, the lens measures download speed and shows results as colored bars in your space — plus speed and quality on your left palm.
+Wi-Fi Speed turns a Spectacles walkthrough into a **live coverage map**. As you move, the lens measures download speed and shows results as colored bars in your space — plus speed and quality on your left palm. Published scans can also be opened in a browser by PIN.
 
 No laptop server. No manual logging. Just walk and read the map.
 
@@ -67,6 +62,7 @@ This lens answers: *"Where in this space is download actually good?"*
 - **Color-coded quality** — see good and weak spots at a glance
 - **Left-palm UI** — latest speed, quality, and hints while you walk
 - **Pinch for detail** — open a spot for Mbps, quality label, and record count
+- **Web sharing** — publish a snapshot, open it with a six digit PIN, and inspect the 3D map in a browser
 - **Onboarding** — short first-run tour (see [Getting started](#getting-started))
 
 ---
@@ -81,11 +77,11 @@ This lens answers: *"Where in this space is download actually good?"*
 └──────────────────┘         │  10mb.bin        │
          │                   └──────────────────┘
          ▼
-┌──────────────────┐
-│  ON-DEVICE MAP   │
-│  grid · pins ·   │
-│  palm UI         │
-└──────────────────┘
+┌──────────────────┐         ┌──────────────────┐
+│  ON-DEVICE MAP   │ ──────► │  CLOUDFLARE      │
+│  grid · pins ·   │ publish │  Pages + D1      │
+│  palm UI         │  JSON   │  PIN viewer      │
+└──────────────────┘         └──────────────────┘
 ```
 
 1. **ConnectionProbe** resolves a download URL (Snap Cloud storage by default) and runs an HTTPS fetch with optional warmup + timed measure window.
@@ -93,8 +89,36 @@ This lens answers: *"Where in this space is download actually good?"*
 3. Cell **weighted median** drives pin height, color bracket, and quality label via **CoverageMetrics**.
 4. **CoveragePalmUi** shows probe progress, last Mbps, coaching hints, and an arrow toward stronger cells on the left palm.
 5. Pinch a pin → **RecordMarker** detail panel (Mbps, session %, bracket, record count).
+6. Optional publish sends a snapshot to the Cloudflare Pages API and returns a six digit PIN for browser viewing.
 
 *Download speed is measured on-device (10 MB HTTPS file); results may differ from phone speedtest apps.*
+
+---
+
+## Web viewer
+
+The browser viewer lives in [`web/`](web/) and is deployed at:
+
+```text
+https://wifi.familybusiness.studio/
+```
+
+Open a published map with:
+
+```text
+https://wifi.familybusiness.studio/?pin=123456
+```
+
+The viewer includes:
+
+- Orthographic Three.js coverage bars with rotate, pan, zoom, reset, and view presets
+- Direct vs inferred cells, hover/select states, and per-cell details
+- Best / worst / average speed summary and scan age
+- Weakest, strongest, and recorded-point navigation
+- Shareable selected-cell links, for example `?pin=123456&cell=20,-40`
+- Expiration status and an extend action for keeping a published map available
+
+Published maps are stored as snapshot JSON in Cloudflare D1 and are accessed by PIN only.
 
 ---
 
@@ -106,6 +130,7 @@ Wi-Fi Speed/
 ├── LICENSE
 ├── AGENTS.md                 # brief agent context
 ├── docs/images/              # logo, onboarding screenshots for GitHub
+├── web/                      # Cloudflare Pages viewer + D1 API
 └── WiFi Speed/               # Lens Studio project
     ├── WiFi Speed.esproj
     ├── icon.png
@@ -160,6 +185,7 @@ ConnectionProbe → CoverageGridManager → RecordMarker (prefab instances)
 - **Onboarding frame & buttons** — Spectacles UIKit (`Frame`, `RectangleButton`)
 - **Speedtest file** — Snap Cloud public storage (`speedtest/10mb.bin`)
 - **Mapping** — on-device grid + median smoothing (v1; no Postgres sync yet)
+- **Web viewer** — Cloudflare Pages Functions, D1, Vite, Three.js
 
 ---
 
@@ -250,11 +276,11 @@ https://<your-project-ref>.snapcloud.dev/storage/v1/object/public/speedtest/10mb
 
 ---
 
-## Coming soon
+## Publish and view maps on the web
 
-We're planning to make coverage maps **viewable on the web** — so you can open and share a walkthrough from a browser, not only on Spectacles.
+The Lens can publish a coverage snapshot to the Cloudflare Pages backend. The backend stores it in D1 and returns a six digit PIN. Use the PIN in the web viewer to inspect or share the scan.
 
-The Cloudflare Pages viewer lives in [`web/`](web/). It accepts a six digit PIN and renders the published coverage snapshot as an axonometric map.
+For deployment and local development details, see [`web/README.md`](web/README.md).
 
 ---
 
