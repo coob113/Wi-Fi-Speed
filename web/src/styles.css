@@ -104,18 +104,23 @@ a {
 }
 
 .topbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 32px;
-  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 34px;
+  margin: 26px auto 46px;
+  text-align: center;
 }
 
 .topbar-loaded {
   display: flex;
+  flex-direction: row;
   justify-content: flex-end;
   align-items: center;
+  gap: 0;
+  margin-top: 0;
   margin-bottom: 12px;
+  text-align: left;
 }
 
 h1,
@@ -151,7 +156,7 @@ h1 {
 
 .topbar p {
   max-width: 680px;
-  margin-top: 14px;
+  margin: 18px auto 0;
   color: #aebacc;
   font-size: 17px;
   line-height: 1.55;
@@ -166,6 +171,7 @@ h1 {
   display: grid;
   grid-template-columns: minmax(210px, 1fr) 132px;
   gap: 12px;
+  width: min(100%, 560px);
   padding: 12px;
   border: 1px solid rgba(255, 222, 123, 0.28);
   border-radius: 8px;
@@ -357,6 +363,39 @@ h1 {
 
 .summary strong {
   color: #ffffff;
+}
+
+.publish-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 10px 18px 14px;
+}
+
+.publish-meta div {
+  min-width: 0;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 6px;
+  padding: 9px 10px;
+  background: rgba(5, 7, 11, 0.36);
+}
+
+.publish-meta dt {
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.publish-meta dd {
+  margin: 5px 0 0;
+  overflow: hidden;
+  color: #e2e8f0;
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .map-viewport {
@@ -551,8 +590,20 @@ h3 {
     display: block;
   }
 
+  .topbar {
+    margin-top: 18px;
+    margin-bottom: 34px;
+    text-align: center;
+  }
+
+  .topbar-loaded {
+    text-align: left;
+  }
+
   .pin-form {
     margin-top: 22px;
+    margin-right: auto;
+    margin-left: auto;
     max-width: 100%;
   }
 
@@ -573,6 +624,10 @@ h3 {
 
   .map-panel {
     margin-bottom: 16px;
+  }
+
+  .publish-meta {
+    grid-template-columns: 1fr;
   }
 
   .map-viewport {

@@ -146,6 +146,7 @@ function renderMapView(map: PublishedMap): string {
           <strong>${map.pin}</strong>
         </div>
         ${renderSummary(map, cells.length)}
+        ${renderPublishMetadata(map)}
         <div class="map-viewport" data-map-viewport role="application" aria-label="Orthographic 3D Wi-Fi coverage model">
           <canvas data-map-canvas></canvas>
           <div class="viewport-controls">
@@ -173,8 +174,26 @@ function renderSummary(map: PublishedMap, renderedCellCount: number = map.snapsh
       <span><strong>${snapshot.directCellCount}</strong> direct</span>
       <span><strong>${renderedCellCount}</strong> cells</span>
       <span><strong>${formatMbps(snapshot.sessionMaxMbps)}</strong> peak</span>
-      <span>Expires ${formatDate(map.expiresAt)}</span>
     </div>
+  `
+}
+
+function renderPublishMetadata(map: PublishedMap): string {
+  return `
+    <dl class="publish-meta" aria-label="Publication details">
+      <div>
+        <dt>Published</dt>
+        <dd>${formatDateTime(map.createdAt)}</dd>
+      </div>
+      <div>
+        <dt>Captured</dt>
+        <dd>${formatTimestampMs(map.snapshot.createdAtMs)}</dd>
+      </div>
+      <div>
+        <dt>Expires</dt>
+        <dd>${formatDateTime(map.expiresAt)}</dd>
+      </div>
+    </dl>
   `
 }
 
@@ -209,7 +228,9 @@ function renderDetails(cell: CoverageCell, map: PublishedMap): string {
       <div><dt>Samples</dt><dd>${cell.sampleCount}</dd></div>
       <div><dt>Direct</dt><dd>${cell.directSampleCount}</dd></div>
       <div><dt>PIN</dt><dd>${map.pin}</dd></div>
-      <div><dt>Created</dt><dd>${formatDate(map.createdAt)}</dd></div>
+      <div><dt>Published</dt><dd>${formatDateTime(map.createdAt)}</dd></div>
+      <div><dt>Captured</dt><dd>${formatTimestampMs(map.snapshot.createdAtMs)}</dd></div>
+      <div><dt>Expires</dt><dd>${formatDateTime(map.expiresAt)}</dd></div>
     </dl>
     <h3>Direct probe history</h3>
     <ul class="samples">${directSamples}</ul>
@@ -268,7 +289,7 @@ async function loadMap(pin: string) {
 }
 
 function mapSubtitle(map: PublishedMap): string {
-  return `${map.snapshot.directCellCount} recorded points · ${buildRenderedCells(map).length} rendered cells · expires ${formatDate(map.expiresAt)}`
+  return `${map.snapshot.directCellCount} recorded points · ${buildRenderedCells(map).length} rendered cells · expires ${formatDateTime(map.expiresAt)}`
 }
 
 function buildRenderedCells(map: PublishedMap): CoverageCell[] {
@@ -668,12 +689,27 @@ function formatMbps(value: number): string {
   return `${value.toFixed(value >= 100 ? 0 : 1)} Mbps`
 }
 
-function formatDate(value: string): string {
+function formatDateTime(value: string): string {
   const date = new Date(value)
+  return formatDateObject(date)
+}
+
+function formatTimestampMs(value: number): string {
+  const date = new Date(value)
+  return formatDateObject(date)
+}
+
+function formatDateObject(date: Date): string {
   if (!Number.isFinite(date.getTime())) {
     return "--"
   }
-  return date.toLocaleDateString(undefined, {month: "short", day: "numeric", year: "numeric"})
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  })
 }
 
 function escapeHtml(value: string): string {
