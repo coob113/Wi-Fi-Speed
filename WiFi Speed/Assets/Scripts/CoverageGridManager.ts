@@ -181,6 +181,7 @@ export class CoverageGridManager extends BaseScriptComponent {
   private markerLastFovCheckSec = new Map<string, number>()
   private markerCachedInFov = new Map<string, boolean>()
   private spawnQueue: SpawnQueueEntry[] = []
+  private lastRecordStatus = "idle"
   private resolvedCullCamera: Camera | null = null
   private smoothedUserY = 0
   private userYInitialized = false
@@ -335,9 +336,15 @@ export class CoverageGridManager extends BaseScriptComponent {
     return new vec3(sumX / qualifying.length, fromPos.y, sumZ / qualifying.length)
   }
 
-  public recordSample(worldPos: vec3, mbps: number) {
-    if (mbps < 0 || !this.recordPrefab || !this.recordsParent) {
-      return
+  public recordSample(worldPos: vec3, mbps: number): string {
+    if (mbps < 0) {
+      return this.setRecordStatus("bad mbps")
+    }
+    if (!this.recordPrefab) {
+      return this.setRecordStatus("missing prefab")
+    }
+    if (!this.recordsParent) {
+      return this.setRecordStatus("missing parent")
     }
 
     const cellX = this.snapAxis(worldPos.x)
@@ -347,6 +354,15 @@ export class CoverageGridManager extends BaseScriptComponent {
     this.addSampleToCell(cellX, cellZ, mbps, this.getDirectSampleWeight(), true)
     this.spreadNeighborSamples(cellX, cellZ, mbps, size)
     this.refreshAfterDataChange()
+    return this.setRecordStatus(`queued ${cellX},${cellZ}`)
+  }
+
+  public getLastRecordStatus(): string {
+    return this.lastRecordStatus
+  }
+
+  public getMarkerCount(): number {
+    return this.markers.size
   }
 
   public onMarkerUpdated(_marker: RecordMarker) {
@@ -557,6 +573,7 @@ export class CoverageGridManager extends BaseScriptComponent {
 
     const marker = this.spawnMarker(entry.cellX, entry.cellZ)
     if (!marker) {
+      this.setRecordStatus(`spawn failed ${entry.cellX},${entry.cellZ}`)
       return
     }
 
@@ -568,6 +585,7 @@ export class CoverageGridManager extends BaseScriptComponent {
 
     this.dirtyKeys.add(key)
     this.refreshAfterDataChange()
+    this.setRecordStatus(`spawned ${key}`)
   }
 
   private refreshAfterDataChange() {
@@ -802,7 +820,7 @@ export class CoverageGridManager extends BaseScriptComponent {
     const obj = this.recordPrefab.instantiate(this.recordsParent)
     const marker = this.findRecordMarker(obj)
     if (!marker) {
-      print("[CoverageGrid] Record prefab missing RecordMarker script")
+      this.setRecordStatus("prefab missing RecordMarker")
       obj.destroy()
       return null
     }
@@ -830,6 +848,12 @@ export class CoverageGridManager extends BaseScriptComponent {
 
   private cellKey(cellX: number, cellZ: number): string {
     return `${cellX},${cellZ}`
+  }
+
+  private setRecordStatus(status: string): string {
+    this.lastRecordStatus = status
+    print(`[CoverageGrid] ${status}`)
+    return status
   }
 
   private buildRawMedianMap(): Map<string, number> {

@@ -692,10 +692,11 @@ export class CoveragePalmUi extends BaseScriptComponent {
     hasSpread: boolean
   ): string {
     const mbpsLine = `${mbps.toFixed(1)} Mbps`
+    const mapLine = `Map: ${this.probe.getLastCoverageRecordStatus()}`
     if (!hasSpread) {
-      return `${mbpsLine}\nFirst reading`
+      return `${mbpsLine}\nFirst reading\n${mapLine}`
     }
-    return `${mbpsLine}\n${pct.toFixed(0)}% of session`
+    return `${mbpsLine}\n${pct.toFixed(0)}% of session\n${mapLine}`
   }
 
   private refreshHint() {
