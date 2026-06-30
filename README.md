@@ -254,6 +254,8 @@ https://<your-project-ref>.snapcloud.dev/storage/v1/object/public/speedtest/10mb
 
 We're planning to make coverage maps **viewable on the web** — so you can open and share a walkthrough from a browser, not only on Spectacles.
 
+The Cloudflare Pages viewer lives in [`web/`](web/). It accepts a six digit PIN and renders the published coverage snapshot as an axonometric map.
+
 ---
 
 ## License

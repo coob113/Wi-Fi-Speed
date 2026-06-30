@@ -1,0 +1,13 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wifi-speed-web",
+  "compatibility_date": "2026-06-30",
+  "pages_build_output_dir": "./dist",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wifi-speed-maps",
+      "database_id": "65f67dfe-cad9-4277-8eea-276cc6a83a6e"
+    }
+  ]
+}

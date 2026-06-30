@@ -1,0 +1,20 @@
+{
+  "name": "wifi-speed-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "pages:dev": "wrangler pages dev dist --d1 DB=wifi-speed-maps --compatibility-date=2026-06-30",
+    "d1:init": "wrangler d1 execute wifi-speed-maps --local --file=./schema.sql",
+    "d1:apply": "wrangler d1 execute wifi-speed-maps --remote --file=./schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260630.0",
+    "typescript": "^5.9.2",
+    "vite": "^7.0.0",
+    "wrangler": "^4.22.0"
+  }
+}

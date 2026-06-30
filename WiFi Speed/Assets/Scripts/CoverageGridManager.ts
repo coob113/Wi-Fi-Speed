@@ -1,4 +1,11 @@
 import {RecordMarker} from "./RecordMarker"
+import {
+  bracketIndex,
+  clampPercent,
+  defaultBracketLabels,
+  isDeadZone,
+  sessionPercent,
+} from "./CoverageMetrics"
 
 type PendingSample = {
   mbps: number
@@ -10,6 +17,38 @@ type SpawnQueueEntry = {
   cellX: number
   cellZ: number
   samples: PendingSample[]
+}
+
+export type CoverageExportCell = {
+  key: string
+  x: number
+  z: number
+  displayMbps: number
+  sessionPct: number
+  bracketIndex: number
+  label: string
+  sampleCount: number
+  directSampleCount: number
+  hasOwnRecording: boolean
+  isDeadZone: boolean
+  directSamples: number[]
+}
+
+export type CoverageExportSnapshot = {
+  schemaVersion: number
+  createdAtMs: number
+  gridSize: number
+  sessionMinMbps: number
+  sessionMaxMbps: number
+  cellCount: number
+  directCellCount: number
+  bounds: {
+    minX: number
+    maxX: number
+    minZ: number
+    maxZ: number
+  }
+  cells: CoverageExportCell[]
 }
 
 @component
@@ -170,6 +209,79 @@ export class CoverageGridManager extends BaseScriptComponent {
 
   public getSmoothedMedianForCell(cellX: number, cellZ: number): number {
     return this.lastSmoothedMedians.get(this.cellKey(cellX, cellZ)) ?? -1
+  }
+
+  public exportSnapshot(): CoverageExportSnapshot {
+    this.refreshAfterDataChange()
+
+    const cells: CoverageExportCell[] = []
+    let directCellCount = 0
+    let minX = Number.POSITIVE_INFINITY
+    let maxX = Number.NEGATIVE_INFINITY
+    let minZ = Number.POSITIVE_INFINITY
+    let maxZ = Number.NEGATIVE_INFINITY
+    const labels = defaultBracketLabels()
+
+    this.markers.forEach((marker, key) => {
+      const displayMbps = this.lastSmoothedMedians.get(key) ?? marker.getDisplayMbps()
+      if (displayMbps < 0) {
+        return
+      }
+
+      const pct = clampPercent(sessionPercent(displayMbps, this.globalMinMbps, this.globalMaxMbps))
+      const idx = bracketIndex(pct)
+      const sessionSpreadMbps = this.globalMaxMbps - this.globalMinMbps
+      const hasOwnRecording = marker.getHasOwnRecording()
+      if (hasOwnRecording) {
+        directCellCount++
+      }
+
+      const x = marker.getCellX()
+      const z = marker.getCellZ()
+      minX = Math.min(minX, x)
+      maxX = Math.max(maxX, x)
+      minZ = Math.min(minZ, z)
+      maxZ = Math.max(maxZ, z)
+
+      cells.push({
+        key,
+        x,
+        z,
+        displayMbps,
+        sessionPct: pct,
+        bracketIndex: idx,
+        label: labels[idx] || marker.getQualityLabelText(),
+        sampleCount: marker.getSampleCount(),
+        directSampleCount: marker.getDirectSampleCount(),
+        hasOwnRecording,
+        isDeadZone: isDeadZone({
+          sampleCount: marker.getSampleCount(),
+          displayMbps,
+          sessionPct: pct,
+          sessionSpreadMbps,
+        }),
+        directSamples: marker.getDirectSamples(),
+      })
+    })
+
+    if (cells.length === 0) {
+      minX = 0
+      maxX = 0
+      minZ = 0
+      maxZ = 0
+    }
+
+    return {
+      schemaVersion: 1,
+      createdAtMs: Date.now(),
+      gridSize: this.getGridSize(),
+      sessionMinMbps: isFinite(this.globalMinMbps) ? this.globalMinMbps : -1,
+      sessionMaxMbps: isFinite(this.globalMaxMbps) ? this.globalMaxMbps : -1,
+      cellCount: cells.length,
+      directCellCount,
+      bounds: {minX, maxX, minZ, maxZ},
+      cells,
+    }
   }
 
   public getGridSize(): number {
