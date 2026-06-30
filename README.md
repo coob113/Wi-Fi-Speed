@@ -7,6 +7,7 @@
 **Snap Spectacles that map Wi-Fi coverage as you walk — probe, pin, and read signal quality from your palm.**
 
 [![Watch the demo](https://img.shields.io/badge/▶-Watch_the_demo-red?style=for-the-badge)](https://www.youtube.com/watch?v=72Gr3HF7yRA)
+[![Latest update](https://img.shields.io/badge/Latest_update-Publishing_+_web_view-yellow?style=for-the-badge)](https://youtu.be/DLD1hkpAsLQ)
 [![Open web viewer](https://img.shields.io/badge/Web_viewer-wifi.familybusiness.studio-yellow?style=for-the-badge)](https://wifi.familybusiness.studio/)
 [![Open in Lens Studio](https://img.shields.io/badge/Lens_Studio-5.15.4+-orange?style=for-the-badge)](https://ar.snap.com/lens-studio)
 
@@ -19,6 +20,7 @@
 ## Table of contents
 
 - [Demo video](#demo-video)
+- [Latest update](#latest-update)
 - [Overview](#overview)
 - [How it works](#how-it-works)
 - [Web viewer](#web-viewer)
@@ -39,6 +41,20 @@
 [![Wi-Fi Speed demo video](https://img.youtube.com/vi/72Gr3HF7yRA/hqdefault.jpg)](https://www.youtube.com/watch?v=72Gr3HF7yRA)
 
 [Watch the demo on YouTube](https://www.youtube.com/watch?v=72Gr3HF7yRA)
+
+</div>
+
+---
+
+## Latest update
+
+Publishing and web viewing were added so scans can be opened outside Spectacles with a six digit PIN.
+
+<div align="center">
+
+[![Publishing and web viewer update](https://img.youtube.com/vi/DLD1hkpAsLQ/hqdefault.jpg)](https://youtu.be/DLD1hkpAsLQ)
+
+[Watch the publishing and web viewer update](https://youtu.be/DLD1hkpAsLQ)
 
 </div>
 

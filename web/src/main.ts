@@ -162,6 +162,10 @@ function renderEmptyState(): string {
         <span class="panel-label">Awaiting map PIN</span>
         <h2>Coverage probes become a 3D grid you can inspect from the browser.</h2>
         <p>Each Spectacles run publishes download probe samples, inferred cells, peak throughput, and expiration metadata.</p>
+        <a class="update-link" href="https://youtu.be/DLD1hkpAsLQ" target="_blank" rel="noreferrer">
+          <span>Latest update</span>
+          <strong>Publishing and web viewer added</strong>
+        </a>
       </div>
       <div class="empty-visual">
         <div class="video-card">

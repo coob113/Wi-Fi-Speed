@@ -4,6 +4,8 @@ Cloudflare Pages app for viewing published Wi-Fi Speed coverage maps by six digi
 
 Demo: https://www.youtube.com/watch?v=72Gr3HF7yRA
 
+Latest publishing and web viewer update: https://youtu.be/DLD1hkpAsLQ
+
 Production viewer: https://wifi.familybusiness.studio/
 
 The web viewer is part of the open-source Wi-Fi Speed Spectacles project. It renders published scan snapshots as an inspectable 3D model with stats, selected-point details, record navigation, view presets, and shareable PIN links.
