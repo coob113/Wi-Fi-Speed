@@ -7,6 +7,11 @@ type PublishResponse = {
   error?: string
 }
 
+const DEFAULT_PUBLISH_URL = "https://webview.wi-fi-speed.pages.dev/api/publish"
+const PUBLISH_BUTTON_NAME = "PublishButton"
+const PIN_OBJECT_NAME = "PinCode"
+const HINT_OBJECT_NAME = "Hint"
+
 @component
 export class CoveragePublishController extends BaseScriptComponent {
   @input
@@ -16,7 +21,7 @@ export class CoveragePublishController extends BaseScriptComponent {
 
   @input
   @hint("Cloudflare Pages/Worker endpoint, e.g. https://wifi-speed.pages.dev/api/publish")
-  publishUrl: string = ""
+  publishUrl: string = DEFAULT_PUBLISH_URL
 
   @input
   @hint("Days until the PIN expires; backend caps this at 30")
@@ -38,8 +43,18 @@ export class CoveragePublishController extends BaseScriptComponent {
 
   @input
   @allowUndefined
+  @hint("Optional root for status/hint text; hidden until publish returns a PIN")
+  statusRoot: SceneObject
+
+  @input
+  @allowUndefined
   @hint("Optional text where the six digit PIN is shown")
   pinText: Text
+
+  @input
+  @allowUndefined
+  @hint("Optional root for PIN text; hidden until publish returns a PIN")
+  pinRoot: SceneObject
 
   private internetModule: InternetModule = require("LensStudio:InternetModule")
   private inFlight = false
@@ -50,6 +65,7 @@ export class CoveragePublishController extends BaseScriptComponent {
   }
 
   private onStart() {
+    this.resolveSceneReferences()
     this.bindButton()
     this.refreshIdleText()
   }
@@ -70,7 +86,7 @@ export class CoveragePublishController extends BaseScriptComponent {
       return
     }
 
-    const url = (this.publishUrl || "").trim()
+    const url = (this.publishUrl || DEFAULT_PUBLISH_URL).trim()
     if (url.length === 0) {
       this.setStatus("Publish URL missing")
       return
@@ -116,7 +132,7 @@ export class CoveragePublishController extends BaseScriptComponent {
           this.inFlight = false
           this.lastPin = parsed.pin
           this.setPin(parsed.pin)
-          this.setStatus("PIN ready")
+          this.setStatus("Enter this PIN at webview.wi-fi-speed.pages.dev")
         })
       })
       .catch(() => {
@@ -148,6 +164,91 @@ export class CoveragePublishController extends BaseScriptComponent {
     return snapshot
   }
 
+  private resolveSceneReferences() {
+    if (!this.grid) {
+      this.grid = this.findGridManager()
+    }
+
+    if (!this.publishButton) {
+      const buttonObject = this.findChildByName(this.getSceneObject(), PUBLISH_BUTTON_NAME)
+      if (buttonObject) {
+        this.publishButton = this.findRectangleButton(buttonObject)
+      }
+    }
+
+    if (!this.pinRoot || !this.pinText) {
+      const pinObject = this.findChildByName(this.getSceneObject(), PIN_OBJECT_NAME)
+      if (pinObject) {
+        this.pinRoot = this.pinRoot || pinObject
+        this.pinText = this.pinText || (pinObject.getComponent("Component.Text") as Text)
+      }
+    }
+
+    if (!this.statusRoot || !this.statusText) {
+      const hintObject = this.findChildByName(this.getSceneObject(), HINT_OBJECT_NAME)
+      if (hintObject) {
+        this.statusRoot = this.statusRoot || hintObject
+        this.statusText = this.statusText || (hintObject.getComponent("Component.Text") as Text)
+      }
+    }
+  }
+
+  private findGridManager(): CoverageGridManager | null {
+    const rootCount = global.scene.getRootObjectsCount()
+    for (let i = 0; i < rootCount; i++) {
+      const found = this.findGridManagerInObject(global.scene.getRootObject(i))
+      if (found) {
+        return found
+      }
+    }
+    return null
+  }
+
+  private findGridManagerInObject(obj: SceneObject): CoverageGridManager | null {
+    const components = obj.getComponents("Component.ScriptComponent")
+    for (let i = 0; i < components.length; i++) {
+      const candidate = components[i] as any
+      if (candidate && typeof candidate.exportSnapshot === "function") {
+        return candidate as CoverageGridManager
+      }
+    }
+
+    const childCount = obj.getChildrenCount()
+    for (let i = 0; i < childCount; i++) {
+      const found = this.findGridManagerInObject(obj.getChild(i))
+      if (found) {
+        return found
+      }
+    }
+    return null
+  }
+
+  private findChildByName(parent: SceneObject, name: string): SceneObject | null {
+    if (parent.name === name) {
+      return parent
+    }
+
+    const childCount = parent.getChildrenCount()
+    for (let i = 0; i < childCount; i++) {
+      const found = this.findChildByName(parent.getChild(i), name)
+      if (found) {
+        return found
+      }
+    }
+    return null
+  }
+
+  private findRectangleButton(obj: SceneObject): RectangleButton | null {
+    const components = obj.getComponents("Component.ScriptComponent")
+    for (let i = 0; i < components.length; i++) {
+      const candidate = components[i] as any
+      if (candidate && candidate.onInitialized && candidate.onTriggerUp) {
+        return candidate as RectangleButton
+      }
+    }
+    return null
+  }
+
   private finishFailure(message: string) {
     this.inFlight = false
     this.setStatus(message.length > 0 ? message : "Publish failed")
@@ -158,17 +259,39 @@ export class CoveragePublishController extends BaseScriptComponent {
       this.pinText.text = ""
     }
     this.setStatus("")
+    this.setPinVisible(false)
+    this.setStatusVisible(false)
   }
 
   private setStatus(text: string) {
     if (this.statusText) {
       this.statusText.text = text
     }
+    if (text.length > 0 && this.lastPin.length > 0) {
+      this.setStatusVisible(true)
+    }
   }
 
   private setPin(pin: string) {
     if (this.pinText) {
       this.pinText.text = pin
+    }
+    const hasPin = pin.length > 0
+    this.setPinVisible(hasPin)
+    this.setStatusVisible(hasPin)
+  }
+
+  private setPinVisible(visible: boolean) {
+    const root = this.pinRoot || (this.pinText ? this.pinText.getSceneObject() : null)
+    if (root) {
+      root.enabled = visible
+    }
+  }
+
+  private setStatusVisible(visible: boolean) {
+    const root = this.statusRoot || (this.statusText ? this.statusText.getSceneObject() : null)
+    if (root) {
+      root.enabled = visible
     }
   }
 }
