@@ -69,6 +69,7 @@ export class CoveragePublishController extends BaseScriptComponent {
 
   private onStart() {
     this.resolveSceneReferences()
+    this.setPublishButtonVisible(false, true)
     this.bindButton()
     this.refreshIdleText()
     this.updatePublishButtonVisibility(true)
@@ -275,8 +276,7 @@ export class CoveragePublishController extends BaseScriptComponent {
       return
     }
 
-    this.publishButtonRoot.enabled = visible
-    this.lastPublishButtonVisible = visible
+    this.setPublishButtonVisible(visible, true)
   }
 
   private hasEnoughRecordedCells(): boolean {
@@ -289,6 +289,17 @@ export class CoveragePublishController extends BaseScriptComponent {
 
     const required = Math.max(1, Math.round(this.minDirectCells))
     return this.grid.getDirectCellCount() >= required
+  }
+
+  private setPublishButtonVisible(visible: boolean, force = false) {
+    if (!this.publishButtonRoot) {
+      return
+    }
+    if (!force && visible === this.lastPublishButtonVisible) {
+      return
+    }
+    this.publishButtonRoot.enabled = visible
+    this.lastPublishButtonVisible = visible
   }
 
   private refreshIdleText() {
