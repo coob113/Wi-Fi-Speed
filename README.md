@@ -207,7 +207,7 @@ ConnectionProbe → CoverageGridManager → RecordMarker (prefab instances)
 
 ## Getting started
 
-First launch shows a short onboarding flow. Four steps:
+First launch shows a short onboarding flow. Five steps:
 
 ### 1. Map your space
 
@@ -239,6 +239,14 @@ Pinch any bar to open details for that spot — Mbps, quality label, record coun
 
 <div align="center">
 <img src="docs/images/onboarding-4-pinch.png" alt="Pinch a bar for spot details" width="300">
+</div>
+
+### 5. Open your right palm
+
+Turn your right palm toward you to publish the current coverage map and get a six digit PIN for the web viewer.
+
+<div align="center">
+<img src="docs/images/onboarding-5-web-pin.png" alt="Right palm web viewer PIN" width="300">
 </div>
 
 Onboarding dismisses after the tour (stored on-device — won't show again unless reset).
