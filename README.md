@@ -29,7 +29,8 @@
 - [Tech stack](#tech-stack)
 - [Getting started](#getting-started)
 - [Run it locally](#run-it-locally)
-- [Replace Snap Cloud project](#replace-snap-cloud-project)
+- [Configure the speedtest file](#configure-the-speedtest-file)
+- [Backend and credentials](#backend-and-credentials)
 - [License](#license)
 
 ---
@@ -87,10 +88,10 @@ This lens answers: *"Where in this space is download actually good?"*
 
 ```
 ┌──────────────────┐         ┌──────────────────┐
-│  SPECTACLES      │ ──────► │  SNAP CLOUD      │
+│  SPECTACLES      │ ──────► │  PUBLIC FILE     │
 │  walk + probe    │  HTTPS  │  public storage  │
-│  (Lens Studio)   │  fetch  │  speedtest/      │
-└──────────────────┘         │  10mb.bin        │
+│  (Lens Studio)   │  fetch  │  10mb.bin        │
+└──────────────────┘         │                  │
          │                   └──────────────────┘
          ▼
 ┌──────────────────┐         ┌──────────────────┐
@@ -100,12 +101,12 @@ This lens answers: *"Where in this space is download actually good?"*
 └──────────────────┘         └──────────────────┘
 ```
 
-1. **ConnectionProbe** resolves a download URL (Snap Cloud storage by default) and runs an HTTPS fetch with optional warmup + timed measure window.
+1. **ConnectionProbe** resolves a public HTTPS download URL and runs a fetch with optional warmup + timed measure window. The URL can come from a Snap Cloud public storage asset or from the `downloadUrl` override.
 2. **CoverageGridManager** records each good sample at a floor grid cell and spawns/updates a **Record** prefab pin.
 3. Cell **weighted median** drives pin height, color bracket, and quality label via **CoverageMetrics**.
 4. **CoveragePalmUi** shows probe progress, last Mbps, coaching hints, and an arrow toward stronger cells on the left palm.
 5. Pinch a pin → **RecordMarker** detail panel (Mbps, session %, bracket, record count).
-6. Optional publish sends a snapshot to the Cloudflare Pages API and returns a six digit PIN for browser viewing.
+6. Optional publish sends a snapshot to the public Cloudflare Pages API and returns a six digit PIN for browser viewing.
 
 *Download speed is measured on-device (10 MB HTTPS file); results may differ from phone speedtest apps.*
 
@@ -150,7 +151,7 @@ Wi-Fi Speed/
 └── WiFi Speed/               # Lens Studio project
     ├── WiFi Speed.esproj
     ├── icon.png
-    ├── testdata/             # 100kb.bin, 10mb.bin (upload 10mb.bin to Snap Cloud)
+    ├── testdata/             # 100kb.bin, 10mb.bin (host 10mb.bin at any public HTTPS URL)
     ├── Assets/
     │   ├── Scene.scene
     │   ├── Record.prefab     # coverage pin (bar + pinch panel + VisualSphere)
@@ -165,7 +166,7 @@ Wi-Fi Speed/
         └── Utilities.lspkg
 ```
 
-Key scene objects: **`ConnectionProbe`**, **`CoverageGridManager`**, **`CoveragePalmUi`**, **`OnboardingController`**, **`SnapCloud`** (SnapCloudRequirements + SupabaseProject asset).
+Key scene objects: **`ConnectionProbe`**, **`CoverageGridManager`**, **`CoveragePalmUi`**, **`CoveragePublishController`**, **`OnboardingController`**, and optionally **`SnapCloud`** when using Snap Cloud as the speedtest file host.
 
 ---
 
@@ -175,12 +176,13 @@ All TypeScript lives in `WiFi Speed/Assets/Scripts/`.
 
 | Script | Role |
 |--------|------|
-| **`ConnectionProbe.ts`** | Download speedtest loop. Resolves URL from **SnapCloudRequirements** (or `downloadUrl` override), runs ranged HTTPS fetch with warmup/measure windows, computes Mbps, discards samples if user moved too far (`maxTravelDistance`), forwards good samples to the grid. |
+| **`ConnectionProbe.ts`** | Download speedtest loop. Resolves URL from `downloadUrl` or **SnapCloudRequirements**, runs ranged HTTPS fetch with warmup/measure windows, computes Mbps, discards samples if user moved too far (`maxTravelDistance`), forwards good samples to the grid. |
 | **`CoverageGridManager.ts`** | Floor grid (`gridSize`), cell snapping, weighted median per cell, neighbor spread, FOV culling, spawns **Record** prefabs. Tracks session min/max Mbps for relative quality. |
 | **`RecordMarker.ts`** | Per-pin behavior: bracket material + bar height from session %, pinch panel (header/secondary text), hover/select scale on **VisualSphere**, dead-zone warnings, registers with grid on update. |
 | **`CoveragePalmUi.ts`** | Left-palm HUD: probe progress bar, status line, Mbps / session %, coaching hints (stay / move / retry), arrow toward best cells. Gates visibility on left palm pose. |
+| **`CoveragePublishController.ts`** | Publishes the current grid snapshot to the Cloudflare Pages API and displays the returned six digit PIN on the right-palm UI. |
 | **`CoverageMetrics.ts`** | Shared math: weighted median, session %, quality brackets (Good / OK / Poor), dead-zone detection, color helpers. No scene inputs — imported by other scripts. |
-| **`SnapCloudRequirements.ts`** | Validates **SupabaseProject** asset, exposes `projectUrl` / tokens, builds public storage URLs for ConnectionProbe. |
+| **`SnapCloudRequirements.ts`** | Optional helper for building public Snap Cloud storage URLs for `ConnectionProbe`. Not used for map publishing. |
 | **`OnboardingController.ts`** | First-run slide tour (UIKit Frame + prev/next), persists dismiss in **PersistentStorage**, optional triggers tied to grid/palm events. |
 
 Data flow:
@@ -199,8 +201,8 @@ ConnectionProbe → CoverageGridManager → RecordMarker (prefab instances)
 - **Language** — TypeScript (`Assets/Scripts/`)
 - **Hand / pinch UI** — Spectacles Interaction Kit (SIK)
 - **Onboarding frame & buttons** — Spectacles UIKit (`Frame`, `RectangleButton`)
-- **Speedtest file** — Snap Cloud public storage (`speedtest/10mb.bin`)
-- **Mapping** — on-device grid + median smoothing (v1; no Postgres sync yet)
+- **Speedtest file** — any public HTTPS file around 10 MB; Snap Cloud public storage is one supported option
+- **Mapping** — on-device grid + median smoothing; published snapshots stored in Cloudflare D1
 - **Web viewer** — Cloudflare Pages Functions, D1, Vite, Three.js
 
 ---
@@ -261,15 +263,17 @@ Onboarding dismisses after the tour (stored on-device — won't show again unles
 4. **File → Send To → Spectacles** (or use device preview).
 5. Walk — probes start automatically; open left palm for status.
 
-The repo ships with a working Snap Cloud project wired in the scene. Clones can run as-is.
+For speed testing, `ConnectionProbe` needs a public HTTPS file. You can either set `downloadUrl` directly or wire `SnapCloudRequirements` to a public Snap Cloud storage file.
 
-Forking or publishing your own build? See [Replace Snap Cloud project](#replace-snap-cloud-project).
+Map publishing uses the public Cloudflare Pages endpoint configured in `CoveragePublishController.publishUrl`; the Lens does not need Cloudflare credentials.
 
 ---
 
-## Replace Snap Cloud project
+## Configure the speedtest file
 
-The lens downloads a test file from Snap Cloud storage to measure speed. To use **your own** project:
+The lens measures speed by downloading a file, not by calling a private speedtest service. The simplest setup is to host `WiFi Speed/testdata/10mb.bin` somewhere public over HTTPS and paste that URL into **`ConnectionProbe.downloadUrl`**.
+
+Snap Cloud public storage is still supported if you prefer to host the test file inside Snap's tooling:
 
 ### 1. Create storage
 
@@ -285,10 +289,10 @@ Browser check — this URL must download the file, not return 403:
 https://<your-project-ref>.snapcloud.dev/storage/v1/object/public/speedtest/10mb.bin
 ```
 
-### 2. Import credentials in Lens Studio
+### 2. Import the public storage project in Lens Studio
 
 1. **Window → Supabase** → log in → select your project → **Import Credentials**.
-2. This creates a **SupabaseProject** asset under Assets.
+2. This creates a **SupabaseProject** asset under Assets. It is used here only to build a public storage URL for the test file.
 
 ### 3. Wire the scene
 
@@ -297,6 +301,20 @@ https://<your-project-ref>.snapcloud.dev/storage/v1/object/public/speedtest/10mb
 3. Save scene → preview on Spectacles.
 
 **Alternative:** set **Download Url** on ConnectionProbe to any public HTTPS URL for a ~10 MB file.
+
+---
+
+## Backend and credentials
+
+Published maps use the Cloudflare backend in [`web/`](web/):
+
+- `POST /api/publish` stores a snapshot in Cloudflare D1 and returns a PIN.
+- `GET /api/maps/:pin` reads a published snapshot by PIN.
+- `POST /api/maps/:pin/extend` extends a map's expiration.
+
+The Lens calls these public HTTPS endpoints. It does **not** contain Cloudflare API tokens, D1 credentials, or account credentials. Cloudflare credentials are only needed by the project maintainer when deploying or managing the backend with Wrangler. The production URL in this repo is a public endpoint, not a secret.
+
+Open-source forks should create their own Cloudflare Pages project and D1 database, then point `CoveragePublishController.publishUrl` at their own `/api/publish` endpoint. See [`web/README.md`](web/README.md) for setup.
 
 ---
 

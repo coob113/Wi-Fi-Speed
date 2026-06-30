@@ -10,6 +10,8 @@ Production viewer: https://wifi.familybusiness.studio/
 
 The web viewer is part of the open-source Wi-Fi Speed Spectacles project. It renders published scan snapshots as an inspectable 3D model with stats, selected-point details, record navigation, view presets, and shareable PIN links.
 
+This folder contains the Cloudflare Pages Functions and schema, but no Cloudflare account credentials. The Lens publishes to a public HTTPS endpoint; Cloudflare API tokens and account access are only needed when deploying or administering your own Pages/D1 setup.
+
 ## Features
 
 - Load a published map with `?pin=971588`
@@ -38,7 +40,7 @@ npm run pages:dev
 ## Cloudflare setup
 
 1. Create a D1 database named `wifi-speed-maps`.
-2. Replace the placeholder `database_id` in `wrangler.jsonc`.
+2. Create your own local `wrangler.jsonc` or configure the D1 binding in the Cloudflare dashboard. Do not commit account-specific credentials.
 3. Apply the schema:
 
 ```sh

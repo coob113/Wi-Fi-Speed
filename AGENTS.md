@@ -4,13 +4,13 @@ Public Spectacles lens repo. Lens project: **`WiFi Speed/WiFi Speed.esproj`**.
 
 ## Product
 
-Walk a space → HTTPS download probes → 3D coverage bars + left-palm UI + pinch details.
+Walk a space → HTTPS download probes → 3D coverage bars + left-palm UI + pinch details → optional Cloudflare web publishing by PIN.
 
-Snap Cloud storage hosts the test file (`speedtest/10mb.bin`). Committed `SupabaseProject InternetSpeed.supabaseProject` is wired in scene; replacement steps are in root **README.md**.
+Speed probes download a public test file. `ConnectionProbe.downloadUrl` can point directly to any public HTTPS file, or `SnapCloudRequirements` can build a public Snap Cloud storage URL for `speedtest/10mb.bin`. Map publishing and PIN lookup use the Cloudflare Pages/D1 backend in `web/`; the Lens does not need Cloudflare credentials.
 
 ## Scripts
 
-`ConnectionProbe`, `CoverageGridManager`, `CoveragePalmUi`, `RecordMarker`, `SnapCloudRequirements`, `OnboardingController`, `CoverageMetrics` — under `WiFi Speed/Assets/Scripts/`.
+`ConnectionProbe`, `CoverageGridManager`, `CoveragePalmUi`, `CoveragePublishController`, `RecordMarker`, `SnapCloudRequirements`, `OnboardingController`, `CoverageMetrics` — under `WiFi Speed/Assets/Scripts/`.
 
 ## Conventions
 
@@ -19,4 +19,4 @@ Snap Cloud storage hosts the test file (`speedtest/10mb.bin`). Committed `Supaba
 
 ## Roadmap (public)
 
-Coverage maps viewable on the web — no internal spec in this repo.
+Coverage maps are viewable on the web through Cloudflare Pages Functions and D1.
