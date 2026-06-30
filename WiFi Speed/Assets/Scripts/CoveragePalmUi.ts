@@ -417,6 +417,7 @@ export class CoveragePalmUi extends BaseScriptComponent {
         this.spotFailStreak = 1
         this.lastResultCellKey = cellKey
       }
+      this.logProbeFailure(status, mbps, cellKey)
       this.progressVisual = 0
       this.rapidFinish = false
       this.applyProgressBar(0)
@@ -682,6 +683,34 @@ export class CoveragePalmUi extends BaseScriptComponent {
     return "Try again"
   }
 
+  private formatFailureStatus(): string {
+    if (!this.probe) {
+      return "unknown"
+    }
+
+    const status = this.probe.getLastStatus()
+    if (status === "moved") {
+      return "moved too far"
+    }
+    if (status.indexOf("size") === 0) {
+      return status
+    }
+    if (status.indexOf("fail") === 0) {
+      return status
+    }
+    if (status === "error") {
+      return "fetch error"
+    }
+    return status.length > 0 ? status : "unknown"
+  }
+
+  private logProbeFailure(status: string, mbps: number, cellKey: string) {
+    const mapStatus = this.probe ? this.probe.getLastCoverageRecordStatus() : "unknown"
+    print(
+      `[CoveragePalmUi] probe failed status=${this.formatFailureStatus()} raw=${status} mbps=${mbps.toFixed(1)} cell=${cellKey || "unknown"} streak=${this.spotFailStreak} map=${mapStatus}`
+    )
+  }
+
   private isSuccessStatus(status: string): boolean {
     return status === "ok" || status.indexOf("ok ") === 0
   }
@@ -692,10 +721,11 @@ export class CoveragePalmUi extends BaseScriptComponent {
     hasSpread: boolean
   ): string {
     const mbpsLine = `${mbps.toFixed(1)} Mbps`
+    const mapLine = `Map: ${this.probe.getLastCoverageRecordStatus()}`
     if (!hasSpread) {
-      return `${mbpsLine}\nFirst reading`
+      return `${mbpsLine}\nFirst reading\n${mapLine}`
     }
-    return `${mbpsLine}\n${pct.toFixed(0)}% of session`
+    return `${mbpsLine}\n${pct.toFixed(0)}% of session\n${mapLine}`
   }
 
   private refreshHint() {

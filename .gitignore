@@ -6,3 +6,11 @@ Thumbs.db
 
 # Accidental archives at repo root
 /*.zip
+
+# Web app local artifacts
+web/node_modules/
+web/dist/
+web/.wrangler/
+
+# Lens Studio may create this when importing from the wrong project-relative root.
+WiFi Speed/Assets/Assets/

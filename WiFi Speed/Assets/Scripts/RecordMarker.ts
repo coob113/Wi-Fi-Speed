@@ -128,6 +128,7 @@ export class RecordMarker extends BaseScriptComponent {
   }
 
   private samples: WeightedSample[] = []
+  private directSamples: number[] = []
   private manager: CoverageGridRef | null = null
   private cellX = 0
   private cellZ = 0
@@ -171,6 +172,7 @@ export class RecordMarker extends BaseScriptComponent {
     }
     if (isDirect) {
       this.hasOwnRecording = true
+      this.directSamples.push(mbps)
     }
     this.samples.push({
       mbps,
@@ -195,6 +197,14 @@ export class RecordMarker extends BaseScriptComponent {
 
   public getSamples(): number[] {
     return this.samples.map((sample) => sample.mbps)
+  }
+
+  public getDirectSamples(): number[] {
+    return this.directSamples.slice()
+  }
+
+  public getDirectSampleCount(): number {
+    return this.directSamples.length
   }
 
   public getCellX(): number {

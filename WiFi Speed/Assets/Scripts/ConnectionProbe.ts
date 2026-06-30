@@ -90,6 +90,7 @@ export class ConnectionProbe extends BaseScriptComponent {
   private sessionOkMaxMbps = Number.NEGATIVE_INFINITY
   private lastOkMbps = -1
   private sessionOkCount = 0
+  private lastCoverageRecordStatus = "idle"
   private loggedRangeFallback = false
 
   onAwake() {
@@ -109,6 +110,7 @@ export class ConnectionProbe extends BaseScriptComponent {
   }
 
   private onStart() {
+    this.resolveCoverageGrid()
     const url = this.resolveDownloadUrl()
     if (url.length === 0) {
       this.logError("no download url (wire Snap Cloud or Download Url)")
@@ -183,6 +185,10 @@ export class ConnectionProbe extends BaseScriptComponent {
     return this.sessionOkCount
   }
 
+  public getLastCoverageRecordStatus(): string {
+    return this.lastCoverageRecordStatus
+  }
+
   public getInterProbeDelaySec(): number {
     return Math.max(0, this.interProbeDelaySec)
   }
@@ -254,6 +260,7 @@ export class ConnectionProbe extends BaseScriptComponent {
       this.logResult()
       this.playFeedback(finalStatus)
       this.recordCoverageSample(mbps, finalStatus, startPos, endPos)
+      this.logProbeSummary(scanDuration)
       this.scheduleNextSpeedtest()
     })
   }
@@ -523,6 +530,12 @@ export class ConnectionProbe extends BaseScriptComponent {
     this.log(`L:${this.formatLine()}`)
   }
 
+  private logProbeSummary(scanDuration: number) {
+    print(
+      `[ConnectionProbe] result=${this.formatLine()} raw=${this.lastStatus} duration=${scanDuration.toFixed(2)}s coverage=${this.lastCoverageRecordStatus}`
+    )
+  }
+
   private formatLine(): string {
     if (this.lastMbps >= 0) {
       return `${this.lastMbps.toFixed(1)} Mbps ${this.shortStatus(this.lastStatus)}`
@@ -569,11 +582,24 @@ export class ConnectionProbe extends BaseScriptComponent {
     startPos: vec3,
     endPos: vec3
   ) {
-    if (!this.coverageGrid || mbps < 0 || status.indexOf("ok") !== 0) {
+    if (mbps < 0) {
+      this.setCoverageRecordStatus("skip bad mbps")
+      return
+    }
+    if (status.indexOf("ok") !== 0) {
+      this.setCoverageRecordStatus(`skip ${status}`)
+      return
+    }
+    if (!this.coverageGrid) {
+      this.resolveCoverageGrid()
+    }
+    if (!this.coverageGrid) {
+      this.setCoverageRecordStatus("no grid")
       return
     }
     const worldPos = vec3.lerp(startPos, endPos, 0.5)
-    this.coverageGrid.recordSample(worldPos, mbps)
+    const gridStatus = this.coverageGrid.recordSample(worldPos, mbps)
+    this.setCoverageRecordStatus(gridStatus)
   }
 
   private getSampleWorldPosition(): vec3 {
@@ -600,6 +626,46 @@ export class ConnectionProbe extends BaseScriptComponent {
     if (mbps > this.sessionOkMaxMbps) {
       this.sessionOkMaxMbps = mbps
     }
+  }
+
+  private resolveCoverageGrid() {
+    if (this.coverageGrid) {
+      return
+    }
+
+    const rootCount = global.scene.getRootObjectsCount()
+    for (let i = 0; i < rootCount; i++) {
+      const found = this.findCoverageGrid(global.scene.getRootObject(i))
+      if (found) {
+        this.coverageGrid = found
+        this.setCoverageRecordStatus("grid auto-wired")
+        return
+      }
+    }
+  }
+
+  private findCoverageGrid(obj: SceneObject): CoverageGridManager | null {
+    const components = obj.getComponents("Component.ScriptComponent")
+    for (let i = 0; i < components.length; i++) {
+      const candidate = components[i] as any
+      if (candidate && typeof candidate.recordSample === "function") {
+        return candidate as CoverageGridManager
+      }
+    }
+
+    const childCount = obj.getChildrenCount()
+    for (let i = 0; i < childCount; i++) {
+      const found = this.findCoverageGrid(obj.getChild(i))
+      if (found) {
+        return found
+      }
+    }
+    return null
+  }
+
+  private setCoverageRecordStatus(status: string) {
+    this.lastCoverageRecordStatus = status
+    print(`[ConnectionProbe] coverage ${status}`)
   }
 
   private log(msg: string) {
