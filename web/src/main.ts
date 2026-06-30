@@ -677,21 +677,48 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
     roughness: 0.48,
     metalness: 0.08,
   }))
-  const selectedMaterial = new THREE.MeshBasicMaterial({color: 0xffde7b, transparent: true, opacity: 0.28})
-  const hoverMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.2})
+  const selectedMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffde7b,
+    transparent: true,
+    opacity: 0.58,
+    depthWrite: false,
+  })
+  const hoverMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.34,
+    depthWrite: false,
+  })
+  const selectedColumnMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffde7b,
+    transparent: true,
+    opacity: 0.2,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  })
+  const hoverColumnMaterial = new THREE.MeshBasicMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.12,
+    depthWrite: false,
+    blending: THREE.AdditiveBlending,
+  })
   const baseMaterial = new THREE.MeshBasicMaterial({color: 0xcbd5e1, transparent: true, opacity: 0.34})
   const pickMaterial = new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 0, depthWrite: false})
   const directGeometry = new THREE.CylinderGeometry(LENS_DIRECT_RADIUS, LENS_DIRECT_RADIUS, 1, 20)
   const inferredGeometry = new THREE.CylinderGeometry(LENS_NEIGHBOR_RADIUS, LENS_NEIGHBOR_RADIUS, 1, 16)
   const pickGeometry = new THREE.CylinderGeometry(2.4, 2.4, 1, 12)
   const baseGeometry = new THREE.SphereGeometry(1, 16, 10)
-  const selectedGeometry = new THREE.TorusGeometry(2.25, 0.08, 8, 36)
-  const hoverGeometry = new THREE.TorusGeometry(1.85, 0.06, 8, 32)
+  const selectedGeometry = new THREE.TorusGeometry(2.75, 0.14, 10, 44)
+  const hoverGeometry = new THREE.TorusGeometry(2.25, 0.1, 8, 36)
+  const highlightColumnGeometry = new THREE.CylinderGeometry(1, 1, 1, 24)
   const barsByKey = new Map<string, THREE.Mesh>()
   const markerPositions = new Map<string, THREE.Vector3>()
   let hoveredKey = ""
   let selectedRing: THREE.Mesh | null = null
   let hoverRing: THREE.Mesh | null = null
+  let selectedColumn: THREE.Mesh | null = null
+  let hoverColumn: THREE.Mesh | null = null
 
   scene.add(new THREE.HemisphereLight(0xffffff, 0x0f172a, 2.6))
   const keyLight = new THREE.DirectionalLight(0xffffff, 2.2)
@@ -739,6 +766,8 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
     bar.userData.cellKey = cell.key
     bar.userData.baseMaterial = material
     bar.userData.restScaleY = height
+    bar.userData.restScaleXZ = sceneScale
+    bar.userData.highlightRadius = (cell.hasOwnRecording ? 2.95 : 2.15) * sceneScale
     bars.push(bar)
     barsByKey.set(cell.key, bar)
     scene.add(bar)
@@ -771,20 +800,44 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
     ring.visible = true
   }
 
+  function setColumnPosition(column: THREE.Mesh, key: string, heightMultiplier: number) {
+    const bar = barsByKey.get(key)
+    if (!bar) {
+      column.visible = false
+      return
+    }
+    const restScaleY = Number(bar.userData.restScaleY) || bar.scale.y
+    const radius = Number(bar.userData.highlightRadius) || sceneScale
+    column.position.copy(bar.position)
+    column.scale.set(radius, restScaleY * heightMultiplier, radius)
+    column.visible = true
+  }
+
   function updateSelectedVisual() {
     if (!selectedRing) {
       selectedRing = new THREE.Mesh(selectedGeometry, selectedMaterial)
       selectedRing.rotation.x = Math.PI / 2
       selectedRing.scale.set(sceneScale, sceneScale, sceneScale)
+      selectedRing.renderOrder = 3
       scene.add(selectedRing)
     }
+    if (!selectedColumn) {
+      selectedColumn = new THREE.Mesh(highlightColumnGeometry, selectedColumnMaterial)
+      selectedColumn.renderOrder = 2
+      scene.add(selectedColumn)
+    }
     setRingPosition(selectedRing, state.selectedKey)
+    setColumnPosition(selectedColumn, state.selectedKey, 1.18)
 
     barsByKey.forEach((bar, key) => {
       const restScaleY = Number(bar.userData.restScaleY) || bar.scale.y
+      const restScaleXZ = Number(bar.userData.restScaleXZ) || sceneScale
       const isSelected = key === state.selectedKey
       const isHovered = key === hoveredKey
-      bar.scale.y = restScaleY * (isSelected ? 1.12 : isHovered ? 1.06 : 1)
+      bar.scale.y = restScaleY * (isSelected ? 1.22 : isHovered ? 1.12 : 1)
+      const xzMultiplier = isSelected ? 1.18 : isHovered ? 1.1 : 1
+      bar.scale.x = restScaleXZ * xzMultiplier
+      bar.scale.z = restScaleXZ * xzMultiplier
     })
   }
 
@@ -795,12 +848,20 @@ function mountMapScene(map: PublishedMap): {dispose: () => void} | null {
       hoverRing = new THREE.Mesh(hoverGeometry, hoverMaterial)
       hoverRing.rotation.x = Math.PI / 2
       hoverRing.scale.set(sceneScale, sceneScale, sceneScale)
+      hoverRing.renderOrder = 3
       scene.add(hoverRing)
+    }
+    if (!hoverColumn) {
+      hoverColumn = new THREE.Mesh(highlightColumnGeometry, hoverColumnMaterial)
+      hoverColumn.renderOrder = 2
+      scene.add(hoverColumn)
     }
     if (hoveredKey.length === 0 || hoveredKey === state.selectedKey) {
       hoverRing.visible = false
+      hoverColumn.visible = false
     } else {
       setRingPosition(hoverRing, hoveredKey)
+      setColumnPosition(hoverColumn, hoveredKey, 1.08)
     }
     updateSelectedVisual()
   }
