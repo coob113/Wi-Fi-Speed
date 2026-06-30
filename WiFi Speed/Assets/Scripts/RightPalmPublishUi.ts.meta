@@ -1,0 +1,59 @@
+- !<AssetImportMetadata/32b31831-1099-4073-b027-4952a6db1a8d>
+  ImportedAssetIds:
+    TypeScriptAsset: !<reference> bfd60115-fc12-41cc-acdc-ca063ad87101
+  ImporterName: TypeScriptAssetImporter
+  PrimaryAsset: !<reference> bfd60115-fc12-41cc-acdc-ca063ad87101
+  PackageType: NotAPackage
+  LegacyPackagePolicy: ~
+  ExtraData:
+    {}
+  AssetDataMap:
+    TypeScriptAsset: !<own> c5b47040-017c-4ae7-a12a-d676fed288f2
+  DependentFiles:
+    []
+  ImporterSettings: !<AssetImporterSettings>
+    {}
+  CompressionSettings: !<own> 00000000-0000-0000-0000-000000000000
+- !<TypeScriptAssetData/c5b47040-017c-4ae7-a12a-d676fed288f2>
+  SvgIcon: ""
+  SetupScript:
+    code: ""
+  Description: ""
+  VersionMajor: 0
+  VersionMinor: 0
+  VersionPatch: 0
+  ComponentUid: ef3a115f-b26c-400f-a325-705ede8e7740
+  ExportUid: 00000000-0000-0000-0000-000000000000
+  PackagePolicy: CanBeUnpacked
+  ScriptInputsHidden:
+    attachLerp: false
+    palmAttachPoint: false
+    palmHideDelaySec: false
+    palmShowDelaySec: false
+    scaleRoot: false
+    scaleTransitionSpeed: false
+  ScriptTypesHidden:
+    {}
+  ReadMe: !<reference> 00000000-0000-0000-0000-000000000000
+  DeclarationFile: !<reference> 00000000-0000-0000-0000-000000000000
+  Tags:
+    []
+  Attachments:
+    []
+  DefaultScriptInputs:
+    - palmAttachPoint: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      scaleRoot: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      attachLerp: 0.350000
+      scaleTransitionSpeed: !<float> 8.000000
+      palmShowDelaySec: 0.150000
+      palmHideDelaySec: 0.250000
+  ScriptTypes:
+    -
+      {}
+  InputLines:
+    - '// @input SceneObject palmAttachPoint {"hint":"Right palm center. RightPalmUI follows this each frame."}'
+    - '// @input SceneObject scaleRoot {"hint":"Root to scale on right palm show/hide."}'
+    - '// @input float attachLerp = 0.35 {"hint":"Lerp speed for right palm attach follow"}'
+    - '// @input float scaleTransitionSpeed = 8 {"hint":"Scale lerp speed when right palm shows / hides"}'
+    - '// @input float palmShowDelaySec = 0.15 {"hint":"Seconds right palm must face camera before UI scales in"}'
+    - '// @input float palmHideDelaySec = 0.25 {"hint":"Seconds right palm turned away before UI scales out"}'

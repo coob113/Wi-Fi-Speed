@@ -79,11 +79,11 @@ function validateSnapshot(snapshot: CoverageSnapshot | undefined): string {
   if (!Array.isArray(snapshot.cells)) {
     return "Missing cells"
   }
-  if (snapshot.cells.length === 0 || snapshot.cells.length > MAX_CELLS) {
+  if (snapshot.cells.length > MAX_CELLS) {
     return "Invalid cell count"
   }
-  if (snapshot.directCellCount < 1) {
-    return "No direct scan cells"
+  if (!Number.isFinite(snapshot.directCellCount) || snapshot.directCellCount < 0) {
+    return "Invalid direct scan cell count"
   }
   for (const cell of snapshot.cells) {
     if (!Number.isFinite(cell.x) || !Number.isFinite(cell.z)) {

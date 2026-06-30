@@ -7,15 +7,11 @@ type PublishResponse = {
   error?: string
 }
 
-const DEFAULT_PUBLISH_URL = "https://webview.wi-fi-speed.pages.dev/api/publish"
-const PUBLISH_BUTTON_NAME = "PublishButton"
-const PIN_OBJECT_NAME = "PinCode"
-const HINT_OBJECT_NAME = "Hint"
+const DEFAULT_PUBLISH_URL = "https://wifi.familybusiness.studio/api/publish"
 
 @component
 export class CoveragePublishController extends BaseScriptComponent {
   @input
-  @allowUndefined
   @hint("CoverageGridManager to snapshot when publishing")
   grid: CoverageGridManager
 
@@ -28,55 +24,54 @@ export class CoveragePublishController extends BaseScriptComponent {
   expiresInDays: number = 30
 
   @input
-  @hint("Minimum directly recorded cells before publishing is allowed")
-  minDirectCells: number = 1
+  @hint("Minimum directly recorded cells before publishing is allowed; 0 means publish anytime")
+  minDirectCells: number = 0
 
   @input
-  @allowUndefined
-  @hint("Optional UIKit button that triggers publish")
+  @hint("UIKit button that triggers publish")
   publishButton: RectangleButton
 
   @input
-  @allowUndefined
-  @hint("Optional status text for publish progress / errors")
+  @hint("Status text for publish progress / errors")
   statusText: Text
 
   @input
-  @allowUndefined
-  @hint("Optional root for status/hint text; hidden until publish returns a PIN")
+  @hint("Root for status/hint text; hidden until publish returns a PIN")
   statusRoot: SceneObject
 
   @input
-  @allowUndefined
-  @hint("Optional text where the six digit PIN is shown")
+  @hint("Text where the six digit PIN is shown")
   pinText: Text
 
   @input
-  @allowUndefined
-  @hint("Optional root for PIN text; hidden until publish returns a PIN")
+  @hint("Root for PIN text; hidden until publish returns a PIN")
   pinRoot: SceneObject
 
   private internetModule: InternetModule = require("LensStudio:InternetModule")
   private inFlight = false
   private lastPin = ""
-  private publishButtonRoot: SceneObject | null = null
-  private lastPublishButtonVisible = false
+  private isConfigured = false
 
   onAwake() {
     this.createEvent("OnStartEvent").bind(() => this.onStart())
-    this.createEvent("UpdateEvent").bind(() => this.updatePublishButtonVisibility())
   }
 
   private onStart() {
-    this.resolveSceneReferences()
-    this.setPublishButtonVisible(false, true)
+    this.isConfigured = this.validateRequiredInputs()
+    if (!this.isConfigured) {
+      return
+    }
     this.bindButton()
     this.refreshIdleText()
-    this.updatePublishButtonVisibility(true)
   }
 
   public publishCurrentMap() {
     if (this.inFlight) {
+      return
+    }
+
+    if (!this.isConfigured) {
+      console.error("[CoveragePublishController] Cannot publish: controller is not fully wired")
       return
     }
 
@@ -86,7 +81,8 @@ export class CoveragePublishController extends BaseScriptComponent {
     }
 
     const snapshot = this.grid.exportSnapshot()
-    if (snapshot.directCellCount < Math.max(1, Math.round(this.minDirectCells))) {
+    const requiredCells = Math.max(0, Math.round(this.minDirectCells))
+    if (requiredCells > 0 && snapshot.directCellCount < requiredCells) {
       this.setStatus("Scan more points first")
       return
     }
@@ -137,7 +133,7 @@ export class CoveragePublishController extends BaseScriptComponent {
           this.inFlight = false
           this.lastPin = parsed.pin
           this.setPin(parsed.pin)
-          this.setStatus("Enter this PIN at webview.wi-fi-speed.pages.dev")
+          this.setStatus("Enter this PIN at wifi.familybusiness.studio")
         })
       })
       .catch(() => {
@@ -155,6 +151,7 @@ export class CoveragePublishController extends BaseScriptComponent {
 
   private bindButton() {
     if (!this.publishButton) {
+      console.error("[CoveragePublishController] publishButton is not assigned")
       return
     }
 
@@ -169,137 +166,9 @@ export class CoveragePublishController extends BaseScriptComponent {
     return snapshot
   }
 
-  private resolveSceneReferences() {
-    if (!this.grid) {
-      this.grid = this.findGridManager()
-    }
-
-    if (!this.publishButton) {
-      const buttonObject = this.findChildByName(this.getSceneObject(), PUBLISH_BUTTON_NAME)
-      if (buttonObject) {
-        this.publishButtonRoot = buttonObject
-        this.publishButton = this.findRectangleButton(buttonObject)
-      }
-    }
-    if (!this.publishButtonRoot && this.publishButton) {
-      this.publishButtonRoot = this.publishButton.getSceneObject()
-    }
-
-    if (!this.pinRoot || !this.pinText) {
-      const pinObject = this.findChildByName(this.getSceneObject(), PIN_OBJECT_NAME)
-      if (pinObject) {
-        this.pinRoot = this.pinRoot || pinObject
-        this.pinText = this.pinText || (pinObject.getComponent("Component.Text") as Text)
-      }
-    }
-
-    if (!this.statusRoot || !this.statusText) {
-      const hintObject = this.findChildByName(this.getSceneObject(), HINT_OBJECT_NAME)
-      if (hintObject) {
-        this.statusRoot = this.statusRoot || hintObject
-        this.statusText = this.statusText || (hintObject.getComponent("Component.Text") as Text)
-      }
-    }
-  }
-
-  private findGridManager(): CoverageGridManager | null {
-    const rootCount = global.scene.getRootObjectsCount()
-    for (let i = 0; i < rootCount; i++) {
-      const found = this.findGridManagerInObject(global.scene.getRootObject(i))
-      if (found) {
-        return found
-      }
-    }
-    return null
-  }
-
-  private findGridManagerInObject(obj: SceneObject): CoverageGridManager | null {
-    const components = obj.getComponents("Component.ScriptComponent")
-    for (let i = 0; i < components.length; i++) {
-      const candidate = components[i] as any
-      if (candidate && typeof candidate.exportSnapshot === "function") {
-        return candidate as CoverageGridManager
-      }
-    }
-
-    const childCount = obj.getChildrenCount()
-    for (let i = 0; i < childCount; i++) {
-      const found = this.findGridManagerInObject(obj.getChild(i))
-      if (found) {
-        return found
-      }
-    }
-    return null
-  }
-
-  private findChildByName(parent: SceneObject, name: string): SceneObject | null {
-    if (parent.name === name) {
-      return parent
-    }
-
-    const childCount = parent.getChildrenCount()
-    for (let i = 0; i < childCount; i++) {
-      const found = this.findChildByName(parent.getChild(i), name)
-      if (found) {
-        return found
-      }
-    }
-    return null
-  }
-
-  private findRectangleButton(obj: SceneObject): RectangleButton | null {
-    const components = obj.getComponents("Component.ScriptComponent")
-    for (let i = 0; i < components.length; i++) {
-      const candidate = components[i] as any
-      if (candidate && candidate.onInitialized && candidate.onTriggerUp) {
-        return candidate as RectangleButton
-      }
-    }
-    return null
-  }
-
   private finishFailure(message: string) {
     this.inFlight = false
     this.setStatus(message.length > 0 ? message : "Publish failed")
-  }
-
-  private updatePublishButtonVisibility(force = false) {
-    if (!this.publishButtonRoot) {
-      this.resolveSceneReferences()
-    }
-    if (!this.publishButtonRoot) {
-      return
-    }
-
-    const visible = this.hasEnoughRecordedCells()
-    if (!force && visible === this.lastPublishButtonVisible) {
-      return
-    }
-
-    this.setPublishButtonVisible(visible, true)
-  }
-
-  private hasEnoughRecordedCells(): boolean {
-    if (!this.grid) {
-      this.resolveSceneReferences()
-    }
-    if (!this.grid) {
-      return false
-    }
-
-    const required = Math.max(1, Math.round(this.minDirectCells))
-    return this.grid.getDirectCellCount() >= required
-  }
-
-  private setPublishButtonVisible(visible: boolean, force = false) {
-    if (!this.publishButtonRoot) {
-      return
-    }
-    if (!force && visible === this.lastPublishButtonVisible) {
-      return
-    }
-    this.publishButtonRoot.enabled = visible
-    this.lastPublishButtonVisible = visible
   }
 
   private refreshIdleText() {
@@ -330,16 +199,39 @@ export class CoveragePublishController extends BaseScriptComponent {
   }
 
   private setPinVisible(visible: boolean) {
-    const root = this.pinRoot || (this.pinText ? this.pinText.getSceneObject() : null)
-    if (root) {
-      root.enabled = visible
-    }
+    this.pinRoot.enabled = visible
   }
 
   private setStatusVisible(visible: boolean) {
-    const root = this.statusRoot || (this.statusText ? this.statusText.getSceneObject() : null)
-    if (root) {
-      root.enabled = visible
+    this.statusRoot.enabled = visible
+  }
+
+  private validateRequiredInputs(): boolean {
+    let ok = true
+    if (!this.grid) {
+      console.error("[CoveragePublishController] grid is not assigned")
+      ok = false
     }
+    if (!this.publishButton) {
+      console.error("[CoveragePublishController] publishButton is not assigned")
+      ok = false
+    }
+    if (!this.statusText) {
+      console.error("[CoveragePublishController] statusText is not assigned")
+      ok = false
+    }
+    if (!this.statusRoot) {
+      console.error("[CoveragePublishController] statusRoot is not assigned")
+      ok = false
+    }
+    if (!this.pinText) {
+      console.error("[CoveragePublishController] pinText is not assigned")
+      ok = false
+    }
+    if (!this.pinRoot) {
+      console.error("[CoveragePublishController] pinRoot is not assigned")
+      ok = false
+    }
+    return ok
   }
 }
