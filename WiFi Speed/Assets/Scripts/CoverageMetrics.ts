@@ -2,10 +2,10 @@ export type QualityLabel = "Good" | "OK" | "Poor"
 
 export const DEFAULT_GOOD_PCT = 70
 export const DEFAULT_OK_PCT = 35
-export const DEFAULT_DEAD_ZONE_MBPS = 10
+export const DEFAULT_DEAD_ZONE_MBPS = 1
 export const DEFAULT_DEAD_ZONE_SESSION_PCT = 1
 export const DEFAULT_DEAD_ZONE_MIN_SAMPLES = 3
-export const DEFAULT_SESSION_SPREAD_MIN_MBPS = 5
+export const DEFAULT_SESSION_SPREAD_MIN_MBPS = 1
 
 export type DeadZoneInput = {
   sampleCount: number
