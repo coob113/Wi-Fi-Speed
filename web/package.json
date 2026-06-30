@@ -8,8 +8,11 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "pages:dev": "wrangler pages dev dist --d1 DB=wifi-speed-maps --compatibility-date=2026-06-30",
+    "cleanup:deploy": "wrangler deploy --config wrangler.cleanup.jsonc",
+    "cleanup:dev": "wrangler dev --config wrangler.cleanup.jsonc --test-scheduled",
     "d1:init": "wrangler d1 execute wifi-speed-maps --local --file=./schema.sql",
-    "d1:apply": "wrangler d1 execute wifi-speed-maps --remote --file=./schema.sql"
+    "d1:apply": "wrangler d1 execute wifi-speed-maps --remote --file=./schema.sql",
+    "smoke:production": "node scripts/smoke-production.mjs"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260630.0",

@@ -40,7 +40,7 @@ npm run pages:dev
 ## Cloudflare setup
 
 1. Create a D1 database named `wifi-speed-maps`.
-2. Create your own local `wrangler.jsonc` or configure the D1 binding in the Cloudflare dashboard. Do not commit account-specific credentials.
+2. Copy `wrangler.example.jsonc` to `wrangler.jsonc` and replace `YOUR_D1_DATABASE_ID`, or configure the D1 binding in the Cloudflare dashboard. `wrangler.jsonc` is gitignored so local Cloudflare identifiers stay out of the public repo.
 3. Apply the schema:
 
 ```sh
@@ -74,6 +74,7 @@ The backend only moves `expires_at` later; it never shortens an existing retenti
 Deploy the scheduled cleanup Worker after the D1 database is configured:
 
 ```sh
+cp wrangler.cleanup.example.jsonc wrangler.cleanup.jsonc
 npm run cleanup:deploy
 ```
 

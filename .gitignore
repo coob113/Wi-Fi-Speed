@@ -11,6 +11,13 @@ Thumbs.db
 web/node_modules/
 web/dist/
 web/.wrangler/
+web/wrangler.jsonc
+web/wrangler.cleanup.jsonc
 
 # Lens Studio may create this when importing from the wrong project-relative root.
 WiFi Speed/Assets/Assets/
+
+# Local Snap Cloud project credentials/identifiers.
+# Use ConnectionProbe.downloadUrl or import your own SupabaseProject in Lens Studio.
+WiFi Speed/Assets/SupabaseProject *.supabaseProject
+WiFi Speed/Assets/SupabaseProject *.supabaseProject.meta

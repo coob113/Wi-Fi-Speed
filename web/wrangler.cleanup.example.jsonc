@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wifi-speed-cleanup",
+  "main": "cleanup-worker/index.ts",
+  "compatibility_date": "2026-06-30",
+  "workers_dev": false,
+  "triggers": {
+    "crons": ["0 3 * * *"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wifi-speed-maps",
+      "database_id": "YOUR_D1_DATABASE_ID"
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

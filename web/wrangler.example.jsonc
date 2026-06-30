@@ -7,7 +7,7 @@
     {
       "binding": "DB",
       "database_name": "wifi-speed-maps",
-      "database_id": "65f67dfe-cad9-4277-8eea-276cc6a83a6e"
+      "database_id": "YOUR_D1_DATABASE_ID"
     }
   ]
 }

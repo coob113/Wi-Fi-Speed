@@ -267,6 +267,8 @@ For speed testing, `ConnectionProbe` needs a public HTTPS file. You can either s
 
 Map publishing uses the public Cloudflare Pages endpoint configured in `CoveragePublishController.publishUrl`; the Lens does not need Cloudflare credentials.
 
+Local Cloudflare Wrangler configs and imported Snap Cloud project assets are gitignored for public sharing. Your local files can stay on disk; forks should copy the example configs and import their own project assets.
+
 ---
 
 ## Configure the speedtest file
