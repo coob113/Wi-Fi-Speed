@@ -140,6 +140,8 @@ export class RecordMarker extends BaseScriptComponent {
   private isHovered = false
   private isSelected = false
   private detailVisible = false
+  private cellUiVisible = true
+  private limitIconRequested = false
   private interactableUnsubscribes: unsubscribe[] = []
   private targetWorldY = 0
   private currentWorldY = 0
@@ -226,7 +228,22 @@ export class RecordMarker extends BaseScriptComponent {
 
   public setInteractableEnabled(enabled: boolean) {
     if (this.interactable) {
-      this.interactable.enabled = enabled
+      this.interactable.enabled = enabled && this.cellUiVisible
+    }
+  }
+
+  public setCellUiVisible(visible: boolean) {
+    if (visible === this.cellUiVisible) {
+      return
+    }
+    this.cellUiVisible = visible
+    if (this.visualSphere) {
+      this.visualSphere.enabled = visible
+    }
+    this.applyDetailPanelEnabled()
+    this.applyLimitIconEnabled()
+    if (!visible && this.interactable) {
+      this.interactable.enabled = false
     }
   }
 
@@ -356,9 +373,7 @@ export class RecordMarker extends BaseScriptComponent {
       this.evictOldestOpenPanelsIfNeeded()
       this.detailVisible = true
       this.addToOpenPanels()
-      if (this.detailPanel) {
-        this.detailPanel.enabled = true
-      }
+      this.applyDetailPanelEnabled()
       this.refreshDetailLabels()
       RecordMarker.notifyDetailOpened()
       return
@@ -366,8 +381,12 @@ export class RecordMarker extends BaseScriptComponent {
 
     this.detailVisible = false
     this.removeFromOpenPanels()
+    this.applyDetailPanelEnabled()
+  }
+
+  private applyDetailPanelEnabled() {
     if (this.detailPanel) {
-      this.detailPanel.enabled = false
+      this.detailPanel.enabled = this.detailVisible && this.cellUiVisible
     }
   }
 
@@ -477,8 +496,13 @@ export class RecordMarker extends BaseScriptComponent {
   }
 
   private setLimitIconVisible(visible: boolean) {
+    this.limitIconRequested = visible
+    this.applyLimitIconEnabled()
+  }
+
+  private applyLimitIconEnabled() {
     if (this.limitIcon) {
-      this.limitIcon.enabled = visible
+      this.limitIcon.enabled = this.limitIconRequested && this.cellUiVisible
     }
   }
 

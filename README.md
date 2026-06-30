@@ -31,6 +31,7 @@
 - [Run it locally](#run-it-locally)
 - [Configure the speedtest file](#configure-the-speedtest-file)
 - [Backend and credentials](#backend-and-credentials)
+- [Publish and view maps on the web](#publish-and-view-maps-on-the-web)
 - [License](#license)
 
 ---
@@ -91,7 +92,7 @@ This lens answers: *"Where in this space is download actually good?"*
 │  SPECTACLES      │ ──────► │  PUBLIC FILE     │
 │  walk + probe    │  HTTPS  │  public storage  │
 │  (Lens Studio)   │  fetch  │  10mb.bin        │
-└──────────────────┘         │                  │
+└──────────────────┘         │  public URL      │
          │                   └──────────────────┘
          ▼
 ┌──────────────────┐         ┌──────────────────┐
@@ -159,14 +160,14 @@ Wi-Fi Speed/
     │   ├── Materials/        # bracket colors (0–10 … 90–100), UI mats
     │   ├── Images/           # onboarding PNGs + image materials
     │   ├── Scripts/          # TypeScript components (see below)
-    │   └── SupabaseClient.lspkg
     └── Packages/
         ├── SpectaclesInteractionKit.lspkg
         ├── SpectaclesUIKit.lspkg
+        ├── SupabaseClient.lspkg
         └── Utilities.lspkg
 ```
 
-Key scene objects: **`ConnectionProbe`**, **`CoverageGridManager`**, **`CoveragePalmUi`**, **`CoveragePublishController`**, **`OnboardingController`**, and optionally **`SnapCloud`** when using Snap Cloud as the speedtest file host.
+Key scene objects: **`ConnectionProbe`**, **`CoverageGridManager`**, **`CoveragePalmUi`**, **`RightPalmPublishUi`**, **`CoveragePublishController`**, **`OnboardingController`**, and optionally **`SnapCloud`** when using Snap Cloud as the speedtest file host.
 
 ---
 
@@ -180,6 +181,7 @@ All TypeScript lives in `WiFi Speed/Assets/Scripts/`.
 | **`CoverageGridManager.ts`** | Floor grid (`gridSize`), cell snapping, weighted median per cell, neighbor spread, FOV culling, spawns **Record** prefabs. Tracks session min/max Mbps for relative quality. |
 | **`RecordMarker.ts`** | Per-pin behavior: bracket material + bar height from session %, pinch panel (header/secondary text), hover/select scale on **VisualSphere**, dead-zone warnings, registers with grid on update. |
 | **`CoveragePalmUi.ts`** | Left-palm HUD: probe progress bar, status line, Mbps / session %, coaching hints (stay / move / retry), arrow toward best cells. Gates visibility on left palm pose. |
+| **`RightPalmPublishUi.ts`** | Right-palm panel follow/show-hide behavior for the publish controls. |
 | **`CoveragePublishController.ts`** | Publishes the current grid snapshot to the Cloudflare Pages API and displays the returned six digit PIN on the right-palm UI. |
 | **`CoverageMetrics.ts`** | Shared math: weighted median, session %, quality brackets (Good / OK / Poor), dead-zone detection, color helpers. No scene inputs — imported by other scripts. |
 | **`SnapCloudRequirements.ts`** | Optional helper for building public Snap Cloud storage URLs for `ConnectionProbe`. Not used for map publishing. |
@@ -263,7 +265,7 @@ Onboarding dismisses after the tour (stored on-device — won't show again unles
 4. **File → Send To → Spectacles** (or use device preview).
 5. Walk — probes start automatically; open left palm for status.
 
-For speed testing, `ConnectionProbe` needs a public HTTPS file. You can either set `downloadUrl` directly or wire `SnapCloudRequirements` to a public Snap Cloud storage file.
+For speed testing, `ConnectionProbe` needs a public HTTPS file. You can either set `downloadUrl` directly or wire `SnapCloudRequirements` to your own imported public Snap Cloud storage project.
 
 Map publishing uses the public Cloudflare Pages endpoint configured in `CoveragePublishController.publishUrl`; the Lens does not need Cloudflare credentials.
 

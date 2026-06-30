@@ -10,7 +10,7 @@ Speed probes download a public test file. `ConnectionProbe.downloadUrl` can poin
 
 ## Scripts
 
-`ConnectionProbe`, `CoverageGridManager`, `CoveragePalmUi`, `CoveragePublishController`, `RecordMarker`, `SnapCloudRequirements`, `OnboardingController`, `CoverageMetrics` — under `WiFi Speed/Assets/Scripts/`.
+`ConnectionProbe`, `CoverageGridManager`, `CoveragePalmUi`, `RightPalmPublishUi`, `CoveragePublishController`, `RecordMarker`, `SnapCloudRequirements`, `OnboardingController`, `CoverageMetrics` — under `WiFi Speed/Assets/Scripts/`.
 
 ## Conventions
 

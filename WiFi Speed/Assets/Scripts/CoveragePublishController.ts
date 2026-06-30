@@ -8,6 +8,11 @@ type PublishResponse = {
 }
 
 const DEFAULT_PUBLISH_URL = "https://wifi.familybusiness.studio/api/publish"
+const PENDING_PIN_TEXT = "------"
+const PENDING_STATUS_TEXT = "Generating PIN"
+const SUCCESS_STATUS_TEXT = "Enter this PIN at wifi.familybusiness.studio"
+const INITIAL_BUTTON_TEXT = "PUBLISH"
+const UPDATED_BUTTON_TEXT = "UPDATE"
 
 @component
 export class CoveragePublishController extends BaseScriptComponent {
@@ -32,6 +37,11 @@ export class CoveragePublishController extends BaseScriptComponent {
   publishButton: RectangleButton
 
   @input
+  @allowUndefined
+  @hint("Text label on the publish button")
+  publishButtonText: Text
+
+  @input
   @hint("Status text for publish progress / errors")
   statusText: Text
 
@@ -47,9 +57,14 @@ export class CoveragePublishController extends BaseScriptComponent {
   @hint("Root for PIN text; hidden until publish returns a PIN")
   pinRoot: SceneObject
 
+  @input
+  @hint("Enable verbose publish/device debug logs")
+  debugLogs: boolean = false
+
   private internetModule: InternetModule = require("LensStudio:InternetModule")
   private inFlight = false
   private lastPin = ""
+  private hasPublished = false
   private isConfigured = false
 
   onAwake() {
@@ -70,33 +85,43 @@ export class CoveragePublishController extends BaseScriptComponent {
       return
     }
 
+    this.logDebug("publish button pressed")
+
     if (!this.isConfigured) {
       console.error("[CoveragePublishController] Cannot publish: controller is not fully wired")
       return
     }
 
     if (!this.grid) {
-      this.setStatus("Map not wired")
+      this.setStatus("Map not wired", true)
       return
     }
 
     const snapshot = this.grid.exportSnapshot()
+    this.logDebug(
+      "snapshot cell counts: cells=" +
+        snapshot.cellCount +
+        ", direct=" +
+        snapshot.directCellCount +
+        ", exported=" +
+        snapshot.cells.length
+    )
+
     const requiredCells = Math.max(0, Math.round(this.minDirectCells))
     if (requiredCells > 0 && snapshot.directCellCount < requiredCells) {
-      this.setStatus("Scan more points first")
+      this.setStatus("Scan more points first", true)
       return
     }
 
     const url = (this.publishUrl || DEFAULT_PUBLISH_URL).trim()
     if (url.length === 0) {
-      this.setStatus("Publish URL missing")
+      this.setStatus("Publish URL missing", true)
       return
     }
 
     this.inFlight = true
-    this.lastPin = ""
-    this.setPin("")
-    this.setStatus("Publishing...")
+    this.showPendingState()
+    this.logDebug("POST URL: " + url)
 
     const body = JSON.stringify({
       expiresInDays: Math.max(1, Math.min(30, Math.round(this.expiresInDays))),
@@ -112,6 +137,7 @@ export class CoveragePublishController extends BaseScriptComponent {
         body,
       })
       .then((response) => {
+        this.logDebug("response status: " + response.status)
         return response.text().then((text) => {
           if (!response.ok) {
             this.finishFailure(text || `HTTP ${response.status}`)
@@ -131,9 +157,8 @@ export class CoveragePublishController extends BaseScriptComponent {
           }
 
           this.inFlight = false
-          this.lastPin = parsed.pin
-          this.setPin(parsed.pin)
-          this.setStatus("Enter this PIN at wifi.familybusiness.studio")
+          this.logDebug("generated PIN received: " + parsed.pin)
+          this.showSuccessState(parsed.pin)
         })
       })
       .catch(() => {
@@ -168,34 +193,50 @@ export class CoveragePublishController extends BaseScriptComponent {
 
   private finishFailure(message: string) {
     this.inFlight = false
-    this.setStatus(message.length > 0 ? message : "Publish failed")
+    this.showFailureState(message.length > 0 ? message : "Publish failed")
+  }
+
+  private showPendingState() {
+    this.lastPin = ""
+    this.setPin(PENDING_PIN_TEXT, true)
+    this.setStatus(PENDING_STATUS_TEXT, true)
+  }
+
+  private showSuccessState(pin: string) {
+    this.hasPublished = true
+    this.lastPin = pin
+    this.setPin(pin, true)
+    this.setStatus(SUCCESS_STATUS_TEXT, true)
+    this.setPublishButtonText(UPDATED_BUTTON_TEXT)
+  }
+
+  private showFailureState(message: string) {
+    this.lastPin = ""
+    this.setPin("", false)
+    this.setStatus(message, true)
   }
 
   private refreshIdleText() {
     if (this.pinText) {
       this.pinText.text = ""
     }
-    this.setStatus("")
-    this.setPinVisible(false)
-    this.setStatusVisible(false)
+    this.setPublishButtonText(this.hasPublished ? UPDATED_BUTTON_TEXT : INITIAL_BUTTON_TEXT)
+    this.setPin("", false)
+    this.setStatus("", false)
   }
 
-  private setStatus(text: string) {
+  private setStatus(text: string, visible = text.length > 0 && this.lastPin.length > 0) {
     if (this.statusText) {
       this.statusText.text = text
     }
-    if (text.length > 0 && this.lastPin.length > 0) {
-      this.setStatusVisible(true)
-    }
+    this.setStatusVisible(visible)
   }
 
-  private setPin(pin: string) {
+  private setPin(pin: string, visible = pin.length > 0) {
     if (this.pinText) {
       this.pinText.text = pin
     }
-    const hasPin = pin.length > 0
-    this.setPinVisible(hasPin)
-    this.setStatusVisible(hasPin)
+    this.setPinVisible(visible)
   }
 
   private setPinVisible(visible: boolean) {
@@ -206,6 +247,12 @@ export class CoveragePublishController extends BaseScriptComponent {
     this.statusRoot.enabled = visible
   }
 
+  private setPublishButtonText(text: string) {
+    if (this.publishButtonText) {
+      this.publishButtonText.text = text
+    }
+  }
+
   private validateRequiredInputs(): boolean {
     let ok = true
     if (!this.grid) {
@@ -214,6 +261,10 @@ export class CoveragePublishController extends BaseScriptComponent {
     }
     if (!this.publishButton) {
       console.error("[CoveragePublishController] publishButton is not assigned")
+      ok = false
+    }
+    if (!this.publishButtonText) {
+      console.error("[CoveragePublishController] publishButtonText is not assigned")
       ok = false
     }
     if (!this.statusText) {
@@ -233,5 +284,11 @@ export class CoveragePublishController extends BaseScriptComponent {
       ok = false
     }
     return ok
+  }
+
+  private logDebug(message: string) {
+    if (this.debugLogs) {
+      console.log("[CoveragePublishController] " + message)
+    }
   }
 }

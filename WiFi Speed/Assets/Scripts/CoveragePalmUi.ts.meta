@@ -32,6 +32,7 @@
     attachLerp: false
     bracketLabels: false
     bracketMaterials: false
+    debugLogs: false
     defaultProgressDurationSec: false
     grid: false
     headerText: false
@@ -43,6 +44,7 @@
     hintStayVariants: false
     hintText: false
     moveAfterSamples: false
+    movementWarningFraction: false
     palmAttachPoint: false
     palmHideDelaySec: false
     palmShowDelaySec: false
@@ -98,11 +100,13 @@
       arrowRotationLerp: !<float> 8.000000
       defaultProgressDurationSec: !<float> 8.000000
       progressSlowAfter90Factor: 0.250000
+      movementWarningFraction: 0.750000
       progressRapidFinishSpeed: !<float> 4.000000
       moveAfterSamples: !<float> 3.000000
       arrowMinFractionOfMax: 0.800000
       hintScaleTransitionSpeed: !<float> 10.000000
       hintSpinDurationSec: 0.350000
+      debugLogs: false
       hintStayVariants: !<string[]>
         - Hang tight — another reading here would help
         - Stay put for one more test
@@ -140,11 +144,13 @@
     - '// @input float arrowRotationLerp = 8 {"hint":"Arrow yaw slerp speed toward best cluster"}'
     - '// @input float defaultProgressDurationSec = 8 {"hint":"Fallback estimated scan duration when no history yet"}'
     - '// @input float progressSlowAfter90Factor = 0.25 {"hint":"Progress rate multiplier after 90% while scan still running"}'
+    - '// @input float movementWarningFraction = 0.75 {"hint":"Warn during a scan once travel reaches this fraction of Max Travel Distance"}'
     - '// @input float progressRapidFinishSpeed = 4 {"hint":"Rapid finish speed when scan completes before bar reaches 100%"}'
     - '// @input float moveAfterSamples = 3 {"hint":"Min successes at this spot before suggesting move"}'
     - '// @input float arrowMinFractionOfMax = 0.8 {"hint":"Min fraction of session max Mbps for arrow cluster cells"}'
     - '// @input float hintScaleTransitionSpeed = 10 {"hint":"Hint scale lerp speed when appearing / hiding"}'
     - '// @input float hintSpinDurationSec = 0.35 {"hint":"Hint 360° X-flip duration when text changes (swap at 180°)"}'
+    - '// @input bool debugLogs {"hint":"Enable verbose palm UI/device debug logs"}'
     - '// @input string[] hintStayVariants = {"One more here","Stay a sec","Another test here","Hold still — once more","Quick retest here","Same spot again","Almost — one more","Keep at it here"}'
     - "// @input string[] hintMoveVariants = {\"Try somewhere new\",\"Head to a new spot\",\"Good here — move on\",\"Walk to another area\",\"Explore elsewhere\",\"Next spot?\",\"Map a new place\",\"You're good — wander\"}"
     - '// @input string[] hintRetryVariants = {"Try again here","Once more here","Give it another go","Retry this spot","Run it again","Same place — retry"}'

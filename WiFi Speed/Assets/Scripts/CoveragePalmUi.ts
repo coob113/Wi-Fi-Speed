@@ -14,6 +14,7 @@ type GridRef = CoverageGridManager
 type ProbeRef = ConnectionProbe
 
 type HintType = "none" | "retry" | "stay" | "move"
+type MovementWarningState = "none" | "near" | "over"
 
 @component
 export class CoveragePalmUi extends BaseScriptComponent {
@@ -119,6 +120,10 @@ export class CoveragePalmUi extends BaseScriptComponent {
   progressSlowAfter90Factor: number = 0.25
 
   @input
+  @hint("Warn during a scan once travel reaches this fraction of Max Travel Distance")
+  movementWarningFraction: number = 0.75
+
+  @input
   @hint("Rapid finish speed when scan completes before bar reaches 100%")
   progressRapidFinishSpeed: number = 4
 
@@ -137,6 +142,10 @@ export class CoveragePalmUi extends BaseScriptComponent {
   @input
   @hint("Hint 360° X-flip duration when text changes (swap at 180°)")
   hintSpinDurationSec: number = 0.35
+
+  @input
+  @hint("Enable verbose palm UI/device debug logs")
+  debugLogs: boolean = false
 
   @input
   hintStayVariants: string[] = [
@@ -201,6 +210,7 @@ export class CoveragePalmUi extends BaseScriptComponent {
   private hintSpinProgress = 0
   private hintSpinTargetLine = ""
   private hintSpinSwapped = false
+  private movementWarningState: MovementWarningState = "none"
 
   /** Palm UI scaled in (matches internal visibility threshold). */
   public isPalmUiVisible(): boolean {
@@ -584,6 +594,15 @@ export class CoveragePalmUi extends BaseScriptComponent {
     }
 
     if (this.probe.isInFlight()) {
+      const movementWarning = this.resolveMovementWarningState()
+      if (movementWarning === "over") {
+        this.statusText.text = "Move back to save scan"
+        return
+      }
+      if (movementWarning === "near") {
+        this.statusText.text = "Hold still — near limit"
+        return
+      }
       this.statusText.text = "Testing download…"
       return
     }
@@ -705,10 +724,51 @@ export class CoveragePalmUi extends BaseScriptComponent {
   }
 
   private logProbeFailure(status: string, mbps: number, cellKey: string) {
+    if (!this.debugLogs) {
+      return
+    }
     const mapStatus = this.probe ? this.probe.getLastCoverageRecordStatus() : "unknown"
-    print(
+    console.log(
       `[CoveragePalmUi] probe failed status=${this.formatFailureStatus()} raw=${status} mbps=${mbps.toFixed(1)} cell=${cellKey || "unknown"} streak=${this.spotFailStreak} map=${mapStatus}`
     )
+  }
+
+  private resolveMovementWarningState(): MovementWarningState {
+    if (!this.probe || !this.probe.isInFlight()) {
+      this.updateMovementWarningState("none")
+      return "none"
+    }
+
+    const maxTravel = this.probe.getMaxTravelDistance()
+    const travel = this.probe.getCurrentTravelDistance()
+    if (maxTravel <= 0 || travel < 0) {
+      this.updateMovementWarningState("none")
+      return "none"
+    }
+
+    const warningFraction = Math.max(0, Math.min(1, this.movementWarningFraction))
+    const state = travel > maxTravel ? "over" : travel >= maxTravel * warningFraction ? "near" : "none"
+    this.updateMovementWarningState(state, travel, maxTravel)
+    return state
+  }
+
+  private updateMovementWarningState(
+    state: MovementWarningState,
+    travel: number = -1,
+    maxTravel: number = -1
+  ) {
+    if (state === this.movementWarningState) {
+      return
+    }
+    this.movementWarningState = state
+    if (state === "none") {
+      return
+    }
+    if (this.debugLogs) {
+      console.warn(
+        `[CoveragePalmUi] movement ${state}: travel=${travel.toFixed(2)} max=${maxTravel.toFixed(2)}`
+      )
+    }
   }
 
   private isSuccessStatus(status: string): boolean {

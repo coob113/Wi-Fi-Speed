@@ -77,6 +77,10 @@ export class ConnectionProbe extends BaseScriptComponent {
   @hint("Log warmup / measure / bulk details to Logger (device tuning)")
   logMeasurementDetail: boolean = false
 
+  @input
+  @hint("Enable verbose probe/device debug logs")
+  debugLogs: boolean = false
+
   private internetModule: InternetModule = require("LensStudio:InternetModule")
 
   private inFlight = false
@@ -92,6 +96,7 @@ export class ConnectionProbe extends BaseScriptComponent {
   private sessionOkCount = 0
   private lastCoverageRecordStatus = "idle"
   private loggedRangeFallback = false
+  private scanStartPosition: vec3 | null = null
 
   onAwake() {
     this.createEvent("OnStartEvent").bind(() => {
@@ -193,6 +198,29 @@ export class ConnectionProbe extends BaseScriptComponent {
     return Math.max(0, this.interProbeDelaySec)
   }
 
+  public getMaxTravelDistance(): number {
+    return Math.max(0, this.maxTravelDistance)
+  }
+
+  public getCurrentTravelDistance(): number {
+    if (!this.inFlight || !this.scanStartPosition) {
+      return -1
+    }
+    return this.horizontalDistance(this.scanStartPosition, this.getSampleWorldPosition())
+  }
+
+  public getCurrentTravelFraction(): number {
+    const maxTravel = this.getMaxTravelDistance()
+    if (maxTravel <= 0) {
+      return -1
+    }
+    const travel = this.getCurrentTravelDistance()
+    if (travel < 0) {
+      return -1
+    }
+    return travel / maxTravel
+  }
+
   public isLastResultOk(): boolean {
     return this.lastStatus === "ok" || this.lastStatus.indexOf("ok ") === 0
   }
@@ -237,14 +265,18 @@ export class ConnectionProbe extends BaseScriptComponent {
     this.inFlight = true
     this.scanStartTime = getTime()
     const startPos = this.getSampleWorldPosition()
+    this.scanStartPosition = startPos
     this.probeDownload(this.cacheBust(url), (mbps, status) => {
       const endPos = this.getSampleWorldPosition()
       let finalStatus = status
-      if (status.indexOf("ok") === 0 && this.exceededMaxTravel(startPos, endPos)) {
+      const finalTravel = this.horizontalDistance(startPos, endPos)
+      if (status.indexOf("ok") === 0 && this.exceededMaxTravelDistance(finalTravel)) {
         finalStatus = "moved"
+        this.logMovementDiscard(finalTravel)
       }
       const scanDuration = getTime() - this.scanStartTime
       this.scanStartTime = -1
+      this.scanStartPosition = null
       if (finalStatus.indexOf("ok") === 0 && scanDuration > 0) {
         this.pushScanDuration(scanDuration)
       }
@@ -527,12 +559,12 @@ export class ConnectionProbe extends BaseScriptComponent {
   }
 
   private logResult() {
-    this.log(`L:${this.formatLine()}`)
+    this.logDebug(`L:${this.formatLine()}`)
   }
 
   private logProbeSummary(scanDuration: number) {
-    print(
-      `[ConnectionProbe] result=${this.formatLine()} raw=${this.lastStatus} duration=${scanDuration.toFixed(2)}s coverage=${this.lastCoverageRecordStatus}`
+    this.logDebug(
+      `result=${this.formatLine()} raw=${this.lastStatus} duration=${scanDuration.toFixed(2)}s coverage=${this.lastCoverageRecordStatus}`
     )
   }
 
@@ -556,11 +588,21 @@ export class ConnectionProbe extends BaseScriptComponent {
     return status
   }
 
-  private exceededMaxTravel(startPos: vec3, endPos: vec3): boolean {
+  private exceededMaxTravelDistance(travel: number): boolean {
+    const maxTravel = this.getMaxTravelDistance()
+    return maxTravel > 0 && travel > maxTravel
+  }
+
+  private horizontalDistance(startPos: vec3, endPos: vec3): number {
     const dx = endPos.x - startPos.x
     const dz = endPos.z - startPos.z
-    const travel = Math.sqrt(dx * dx + dz * dz)
-    return travel > this.maxTravelDistance
+    return Math.sqrt(dx * dx + dz * dz)
+  }
+
+  private logMovementDiscard(travel: number) {
+    this.warnDebug(
+      `sample discarded: moved ${travel.toFixed(2)} > max ${this.getMaxTravelDistance().toFixed(2)}`
+    )
   }
 
   private playFeedback(status: string) {
@@ -665,17 +707,26 @@ export class ConnectionProbe extends BaseScriptComponent {
 
   private setCoverageRecordStatus(status: string) {
     this.lastCoverageRecordStatus = status
-    print(`[ConnectionProbe] coverage ${status}`)
+    this.logDebug(`coverage ${status}`)
   }
 
   private log(msg: string) {
-    if (!this.logMeasurementDetail) {
-      return
-    }
-    print(`[ConnectionProbe] ${msg}`)
+    this.logDebug(msg)
   }
 
   private logError(msg: string) {
-    print(`[ConnectionProbe] ${msg}`)
+    console.error(`[ConnectionProbe] ${msg}`)
+  }
+
+  private logDebug(msg: string) {
+    if (this.debugLogs || this.logMeasurementDetail) {
+      console.log(`[ConnectionProbe] ${msg}`)
+    }
+  }
+
+  private warnDebug(msg: string) {
+    if (this.debugLogs || this.logMeasurementDetail) {
+      console.warn(`[ConnectionProbe] ${msg}`)
+    }
   }
 }

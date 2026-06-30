@@ -26,12 +26,14 @@
   ExportUid: 00000000-0000-0000-0000-000000000000
   PackagePolicy: CanBeUnpacked
   ScriptInputsHidden:
+    debugLogs: false
     expiresInDays: false
     grid: false
     minDirectCells: false
     pinRoot: false
     pinText: false
     publishButton: false
+    publishButtonText: false
     publishUrl: false
     statusRoot: false
     statusText: false
@@ -49,10 +51,12 @@
       expiresInDays: !<float> 30.000000
       minDirectCells: !<float> 0.000000
       publishButton: !<MappingBased.AssignableType_1> 00000000-0000-0000-0000-000000000000
+      publishButtonText: !<reference.Text> 00000000-0000-0000-0000-000000000000
       statusText: !<reference.Text> 00000000-0000-0000-0000-000000000000
       statusRoot: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
       pinText: !<reference.Text> 00000000-0000-0000-0000-000000000000
       pinRoot: !<reference.SceneObject> 00000000-0000-0000-0000-000000000000
+      debugLogs: false
   ScriptTypes:
     -
       {}
@@ -60,9 +64,11 @@
     - '// @input AssignableType grid {"hint":"CoverageGridManager to snapshot when publishing"}'
     - '// @input string publishUrl {"hint":"Cloudflare Pages/Worker endpoint, e.g. https://wifi-speed.pages.dev/api/publish"}'
     - '// @input float expiresInDays = 30 {"hint":"Days until the PIN expires; backend caps this at 30"}'
-    - '// @input float minDirectCells = 0 {"hint":"Minimum directly recorded cells before publishing is allowed; 0 means publish anytime"}'
+    - '// @input float minDirectCells {"hint":"Minimum directly recorded cells before publishing is allowed; 0 means publish anytime"}'
     - '// @input AssignableType_1 publishButton {"hint":"UIKit button that triggers publish"}'
+    - '// @input Component.Text publishButtonText {"hint":"Text label on the publish button"}'
     - '// @input Component.Text statusText {"hint":"Status text for publish progress / errors"}'
     - '// @input SceneObject statusRoot {"hint":"Root for status/hint text; hidden until publish returns a PIN"}'
     - '// @input Component.Text pinText {"hint":"Text where the six digit PIN is shown"}'
     - '// @input SceneObject pinRoot {"hint":"Root for PIN text; hidden until publish returns a PIN"}'
+    - '// @input bool debugLogs {"hint":"Enable verbose publish/device debug logs"}'

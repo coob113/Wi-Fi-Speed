@@ -170,6 +170,14 @@ export class CoverageGridManager extends BaseScriptComponent {
   @hint("FOV re-check interval (sec) for far bars (>= perfMidDistance)")
   cullFovCheckFarSec: number = 0.33
 
+  @input
+  @hint("Hide per-cell UI and disable pinch interactions at or beyond this distance")
+  cellUiMaxDistance: number = 3
+
+  @input
+  @hint("Enable verbose grid performance/debug logs")
+  debugLogs: boolean = false
+
   private markers = new Map<string, RecordMarker>()
   private globalMinMbps = Number.POSITIVE_INFINITY
   private globalMaxMbps = Number.NEGATIVE_INFINITY
@@ -674,20 +682,24 @@ export class CoverageGridManager extends BaseScriptComponent {
     const camera = this.getCullCamera()
     const maxDist = Math.max(0, this.cullMaxDistance)
     const interactableDist = Math.max(0, this.interactableMaxDistance)
+    const cellUiDist = Math.max(0, this.cellUiMaxDistance)
     const sphereRadius = Math.max(0.1, this.cullSphereRadius)
     const nearDist = Math.max(0, this.perfNearDistance)
     const midDist = Math.max(nearDist, this.perfMidDistance)
 
     this.markers.forEach((marker, key) => {
-      if (marker.getIsDetailVisible()) {
+      const markerPos = marker.getMarkerWorldPosition()
+      const dist = this.xzDistance(userPos, markerPos)
+      const cellUiVisible = dist < cellUiDist
+      marker.setCellUiVisible(cellUiVisible)
+
+      if (marker.getIsDetailVisible() && cellUiVisible) {
         marker.setMarkerSceneEnabled(true)
         marker.setInteractableEnabled(true)
         this.markerWasCulled.set(key, false)
         return
       }
 
-      const markerPos = marker.getMarkerWorldPosition()
-      const dist = this.xzDistance(userPos, markerPos)
       const inRange = dist <= maxDist
       let inFovForVisual = true
 
@@ -716,6 +728,7 @@ export class CoverageGridManager extends BaseScriptComponent {
       marker.setMarkerSceneEnabled(isVisible)
 
       const interactableOn =
+        cellUiVisible &&
         inRange &&
         dist <= interactableDist &&
         this.queryMarkerInFovForInteractable(markerPos, camera, sphereRadius)
@@ -858,7 +871,9 @@ export class CoverageGridManager extends BaseScriptComponent {
 
   private setRecordStatus(status: string): string {
     this.lastRecordStatus = status
-    print(`[CoverageGrid] ${status}`)
+    if (this.debugLogs) {
+      console.log(`[CoverageGrid] ${status}`)
+    }
     return status
   }
 

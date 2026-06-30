@@ -27,12 +27,14 @@
   PackagePolicy: CanBeUnpacked
   ScriptInputsHidden:
     barHeightMoveSmooth: false
+    cellUiMaxDistance: false
     cullCamera: false
     cullFovCheckFarSec: false
     cullFovCheckMidSec: false
     cullFovCheckNearSec: false
     cullMaxDistance: false
     cullSphereRadius: false
+    debugLogs: false
     directSampleWeight: false
     enableFovVisualCull: false
     gridSize: false
@@ -93,6 +95,8 @@
       cullFovCheckNearSec: !<float> 0.000000
       cullFovCheckMidSec: 0.150000
       cullFovCheckFarSec: 0.330000
+      cellUiMaxDistance: !<float> 3.000000
+      debugLogs: false
   ScriptTypes:
     -
       {}
@@ -126,3 +130,5 @@
     - '// @input float cullFovCheckNearSec {"hint":"FOV re-check interval (sec) for near bars (< perfNearDistance); 0 = every frame"}'
     - '// @input float cullFovCheckMidSec = 0.15 {"hint":"FOV re-check interval (sec) for mid-distance bars"}'
     - '// @input float cullFovCheckFarSec = 0.33 {"hint":"FOV re-check interval (sec) for far bars (>= perfMidDistance)"}'
+    - '// @input float cellUiMaxDistance = 3 {"hint":"Hide per-cell UI and disable pinch interactions at or beyond this distance"}'
+    - '// @input bool debugLogs {"hint":"Enable verbose grid performance/debug logs"}'

@@ -27,6 +27,7 @@
   PackagePolicy: CanBeUnpacked
   ScriptInputsHidden:
     coverageGrid: false
+    debugLogs: false
     downloadUrl: false
     expectedBytes: false
     failAudio: false
@@ -69,6 +70,7 @@
       minMeasureBytes: !<float> 4194304.000000
       rangeFallbackToBulk: true
       logMeasurementDetail: false
+      debugLogs: false
   ScriptTypes:
     -
       {}
@@ -90,3 +92,4 @@
     - '// @input float minMeasureBytes = 4194304 {"hint":"Minimum scored bytes; if measure window smaller, use full-file Range"}'
     - '// @input bool rangeFallbackToBulk = true {"hint":"If Range fails, retry once with a normal full-file GET"}'
     - '// @input bool logMeasurementDetail {"hint":"Log warmup / measure / bulk details to Logger (device tuning)"}'
+    - '// @input bool debugLogs {"hint":"Enable verbose probe/device debug logs"}'

@@ -5,18 +5,15 @@ import {CoverageGridManager} from "./CoverageGridManager"
 import {CoveragePalmUi} from "./CoveragePalmUi"
 import {RecordMarker} from "./RecordMarker"
 
-const STORAGE_KEY = "internet_speed_onboarding_dismissed_v1"
-const DISMISSED_VALUE = "1"
-
 @component
 export class OnboardingController extends BaseScriptComponent {
   @input
-  @hint("Slide 1 … Slide 5 — enable one at a time")
+  @hint("Slide 1 … Slide 6 — enable one at a time")
   slides: SceneObject[] = []
 
   @input
   @allowUndefined
-  @hint("UI/Step Text — Step 1/5 … Step 5/5")
+  @hint("UI/Step Text — updated from the slide count")
   stepText: Text
 
   @input
@@ -48,8 +45,8 @@ export class OnboardingController extends BaseScriptComponent {
   palmUi: CoveragePalmUi
 
   @input
-  @hint("Skip persisted dismiss (testing)")
-  forceShowOnboarding: boolean = false
+  @hint("Deprecated: onboarding now starts on every lens launch")
+  forceShowOnboarding: boolean = true
 
   @input
   slide1AutoSec: number = 15
@@ -58,7 +55,7 @@ export class OnboardingController extends BaseScriptComponent {
   slide2NewBars: number = 30
 
   @input
-  slide5AutoSec: number = 5
+  finalSlideAutoSec: number = 5
 
   private currentSlide = 0
   private slideEnterTime = 0
@@ -92,12 +89,6 @@ export class OnboardingController extends BaseScriptComponent {
   private onStart() {
     this.bindButtons()
     this.bindFrameClose()
-
-    if (this.isDismissed()) {
-      this.disableAllSlides()
-      this.getSceneObject().enabled = false
-      return
-    }
 
     this.active = true
     this.getSceneObject().enabled = true
@@ -144,7 +135,7 @@ export class OnboardingController extends BaseScriptComponent {
       this.palmVisibleLastFrame = visible
     }
 
-    if (this.currentSlide === 4 && elapsed >= this.slide5AutoSec) {
+    if (this.isFinalSlide() && elapsed >= this.finalSlideAutoSec) {
       this.scheduleDismiss()
     }
   }
@@ -274,45 +265,20 @@ export class OnboardingController extends BaseScriptComponent {
     }
   }
 
+  private isFinalSlide(): boolean {
+    return this.slides && this.slides.length > 0 && this.currentSlide >= this.slides.length - 1
+  }
+
   private scheduleDismiss() {
     if (this.pendingDismiss) {
       return
     }
-    this.persistDismissed()
     this.pendingDismiss = true
   }
 
   private dismissNow() {
-    this.persistDismissed()
     this.disableAllSlides()
     this.getSceneObject().enabled = false
     this.active = false
-  }
-
-  private isDismissed(): boolean {
-    if (this.forceShowOnboarding) {
-      return false
-    }
-
-    try {
-      const store = global.persistentStorageSystem?.store
-      if (!store || !store.getString) {
-        return false
-      }
-      return store.getString(STORAGE_KEY) === DISMISSED_VALUE
-    } catch (_e) {
-      return false
-    }
-  }
-
-  private persistDismissed() {
-    try {
-      const store = global.persistentStorageSystem?.store
-      if (store && store.putString) {
-        store.putString(STORAGE_KEY, DISMISSED_VALUE)
-      }
-    } catch (_e) {
-      // Editor may not have persistent storage
-    }
   }
 }
